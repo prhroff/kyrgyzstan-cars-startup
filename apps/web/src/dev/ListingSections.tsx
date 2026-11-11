@@ -14,6 +14,7 @@ import { SellerBlock } from "@/components/ui/SellerBlock";
 import { SortSelect } from "@/components/ui/SortSelect";
 import { TrustPanel } from "@/components/ui/TrustPanel";
 import { FIXTURE_LISTINGS, FIXTURE_NOW, FIXTURE_USD_KGS_RATE } from "@/data/fixtures";
+import { makeOptions } from "@/data/search";
 import type { ListingDetail, Sort } from "@/data/types";
 import { buildTrustItems } from "@/lib/trust";
 import { Section, State } from "./showcase-parts";
@@ -126,7 +127,7 @@ export function ListingSections() {
 
       <Section id="layout" title="Header, Footer">
         <State label="шапка">
-          <Header />
+          <Header makes={makeOptions(FIXTURE_LISTINGS)} cookieCity={null} />
         </State>
         <State label="подвал">
           <Footer />
