@@ -10,3 +10,6 @@ packages/db/src/generated/
 .DS_Store
 Thumbs.db
 .neon
+
+# Third-party design references: local only (docs/design/direction.md)
+docs/design/references/

@@ -33,7 +33,7 @@ export function Checkbox({ children, className, ...props }: CheckboxProps) {
             <span
               aria-hidden
               className={cx(
-                "flex size-5 shrink-0 items-center justify-center rounded-sm border transition-colors",
+                "flex size-5 shrink-0 items-center justify-center rounded-xs border transition-colors",
                 !isDisabled &&
                   !isSelected &&
                   !isIndeterminate &&

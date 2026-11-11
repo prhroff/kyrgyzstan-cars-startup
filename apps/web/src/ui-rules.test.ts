@@ -66,13 +66,30 @@ const rules: { name: string; find: (text: string, path: string) => string[] }[] 
       ].map((m) => m[0]),
   },
   {
-    name: "radius larger than 8px",
-    find: (t) => [...t.matchAll(/\brounded(?:-[trblse]{1,2})?-(?:xl|[2-9]xl)\b/g)].map((m) => m[0]),
+    // Scale (tokens.css): xs (checkboxes only) / sm 8 / md 12 / lg 16 / xl 24 / full.
+    name: "radius outside the token scale",
+    find: (t) =>
+      // Bare `rounded` / `shadow` render nothing (defaults are reset in tokens.css) and would
+      // false-positive on prose in comments, so they are not matched here.
+      [...t.matchAll(/(?<![\w-])rounded(?:-[trblse]{1,2})?-(?:none|[2-9]xl|\d+)\b/g)].map(
+        (m) => m[0],
+      ),
   },
   {
-    name: "shadow other than shadow-overlay",
+    name: "rounded-xs outside checkboxes",
+    find: (t, path) =>
+      path === "components/ui/Checkbox.tsx" || path === "dev/Showcase.tsx"
+        ? []
+        : [...t.matchAll(/(?<![\w-])rounded-xs\b/g)].map((m) => m[0]),
+  },
+  {
+    // Only floating elements cast shadows: shadow-raised (sticky panels), shadow-overlay (sheets, menus).
+    name: "shadow other than shadow-raised / shadow-overlay",
     find: (t) =>
-      [...t.matchAll(/(?<![\w-])shadow-(?:xs|sm|md|lg|xl|2xl|inner)\b/g)].map((m) => m[0]),
+      [
+        ...t.matchAll(/(?<![\w-])shadow-(?!raised\b|overlay\b|none\b)[a-z0-9]+\b/g),
+        ...t.matchAll(/(?<![\w])drop-shadow[\w-]*/g),
+      ].map((m) => m[0]),
   },
   {
     name: "inline style attribute",
