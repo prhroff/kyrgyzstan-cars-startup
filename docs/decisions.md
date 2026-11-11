@@ -86,3 +86,9 @@ pnpm store/cache/state (`pnpm config --location=global`), `npm_config_cache`, `C
 PreToolUse `protect-secrets.mjs` блокирует чтение/правку env-файлов (кроме example), ключей и
 сертификатов — по пути инструмента и по токенам в shell-командах. PostToolUse `format-ts.mjs`
 прогоняет Prettier по изменённому .ts-файлу (уважает .prettierignore, никогда не блокирует).
+
+**2026-11-11 — Postgres закреплён на 18.6 в CI и docker-compose (как в Neon).**
+`SELECT version()` на Neon (production) → `PostgreSQL 18.6`. Вместо плавающего `postgres:18-alpine`
+— `postgres:18.6-alpine`: локально и в CI та же минорная версия, что в проде, образ не меняется сам.
+Neon обновляет минорные версии автоматически — при расхождении проверить `SELECT version()` и
+поднять тег в `docker-compose.yml` и `.github/workflows/ci.yml` вместе.
