@@ -61,7 +61,7 @@ export function Gallery({ photos, title, className }: GalleryProps) {
             <div className="absolute inset-y-0 left-2 flex items-center">
               <Button
                 variant="secondary"
-                size="sm"
+                size="md"
                 iconOnly
                 iconLeading={ChevronLeft}
                 aria-label="Предыдущее фото"
@@ -73,7 +73,7 @@ export function Gallery({ photos, title, className }: GalleryProps) {
             <div className="absolute inset-y-0 right-2 flex items-center">
               <Button
                 variant="secondary"
-                size="sm"
+                size="md"
                 iconOnly
                 iconLeading={ChevronRight}
                 aria-label="Следующее фото"

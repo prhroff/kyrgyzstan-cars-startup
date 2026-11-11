@@ -57,7 +57,7 @@ export default async function HomePage() {
           <h2 id="latest-heading" className="text-xl font-semibold text-fg">
             Свежие объявления
           </h2>
-          <LinkButton href="/cars" variant="ghost" size="sm">
+          <LinkButton href="/cars" variant="ghost" size="md">
             Все объявления
           </LinkButton>
         </div>
