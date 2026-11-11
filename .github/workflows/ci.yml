@@ -27,11 +27,11 @@ jobs:
       - run: pnpm test
 
   database:
-    name: Migrate, seed, DB tests (Postgres 16)
+    name: Migrate, seed, DB tests (Postgres 18)
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:18-alpine
         env:
           POSTGRES_USER: auto
           POSTGRES_PASSWORD: auto

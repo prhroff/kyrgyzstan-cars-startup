@@ -10,7 +10,7 @@
 
 ## Стек
 
-pnpm workspaces + Turborepo · TypeScript strict · Node 22+ · PostgreSQL 16 · Prisma 7 (driver adapter
+pnpm workspaces + Turborepo · TypeScript strict · Node 22+ · PostgreSQL 18 (Neon в проде, та же мажорная версия в docker-compose и CI) · Prisma 7 (driver adapter
 `@prisma/adapter-pg`, ESM-клиент) · zod 4 · vitest · ESLint 9 (flat) + Prettier.
 
 ## Структура
