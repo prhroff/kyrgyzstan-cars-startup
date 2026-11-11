@@ -40,6 +40,33 @@ const SIZES: Record<ButtonSize, { box: string; icon: string; iconOnly: string }>
   lg: { box: "h-12 px-5 text-base gap-2", icon: "size-5", iconOnly: "size-12" },
 };
 
+/** Classes shared by Button and LinkButton, so a link styled as a button looks identical. */
+export function buttonStyles({
+  variant = "primary",
+  size = "md",
+  iconOnly = false,
+  fullWidth = false,
+}: {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  iconOnly?: boolean;
+  fullWidth?: boolean;
+}): string {
+  const s = SIZES[size];
+  return cx(
+    "inline-flex shrink-0 cursor-pointer items-center justify-center rounded-md font-medium whitespace-nowrap transition-colors select-none",
+    "data-disabled:cursor-not-allowed data-pending:cursor-wait",
+    focusRing,
+    VARIANTS[variant],
+    iconOnly ? s.iconOnly : s.box,
+    fullWidth && "w-full",
+  );
+}
+
+export function buttonIconSize(size: ButtonSize): string {
+  return SIZES[size].icon;
+}
+
 export function Button({
   variant = "primary",
   size = "md",
@@ -57,15 +84,7 @@ export function Button({
     <AriaButton
       {...props}
       {...(isPending === undefined ? {} : { isPending })}
-      className={cx(
-        "inline-flex shrink-0 cursor-pointer items-center justify-center rounded-md font-medium whitespace-nowrap transition-colors select-none",
-        "data-disabled:cursor-not-allowed data-pending:cursor-wait",
-        focusRing,
-        VARIANTS[variant],
-        iconOnly ? s.iconOnly : s.box,
-        fullWidth && "w-full",
-        className,
-      )}
+      className={cx(buttonStyles({ variant, size, iconOnly, fullWidth }), className)}
     >
       {isPending ? (
         <LoaderCircle aria-hidden className={cx(s.icon, "animate-spin")} />

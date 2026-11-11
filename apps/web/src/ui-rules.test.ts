@@ -18,6 +18,12 @@ const LAYOUT_ARBITRARY_ALLOWLIST = new Set<string>([
   "w-(--trigger-width)",
 ]);
 
+/**
+ * Files allowed to contain an inline <svg>. Only data charts that icons cannot express.
+ * Decision: docs/decisions.md (2026-11-11, price history chart).
+ */
+const INLINE_SVG_ALLOWLIST = new Set<string>(["components/ui/PriceHistoryChart.tsx"]);
+
 function sourceFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
     const p = join(dir, e.name);
@@ -33,7 +39,7 @@ const files = sourceFiles(SRC).map((path) => ({
 }));
 
 /** Each rule: regex over file text → list of offending matches. */
-const rules: { name: string; find: (text: string) => string[] }[] = [
+const rules: { name: string; find: (text: string, path: string) => string[] }[] = [
   {
     name: "arbitrary value outside the layout allowlist",
     find: (t) =>
@@ -85,7 +91,8 @@ const rules: { name: string; find: (text: string) => string[] }[] = [
   },
   {
     name: "inline <svg> (icons come from Lucide)",
-    find: (t) => [...t.matchAll(/<svg\b/g)].map((m) => m[0]),
+    find: (t, path) =>
+      INLINE_SVG_ALLOWLIST.has(path) ? [] : [...t.matchAll(/<svg\b/g)].map((m) => m[0]),
   },
 ];
 
@@ -95,12 +102,17 @@ describe("UI rules", () => {
   });
 
   it.each(rules.map((r) => [r.name, r] as const))("no %s", (_, rule) => {
-    const violations = files.flatMap((f) => rule.find(f.text).map((m) => `${f.path}: ${m}`));
+    const violations = files.flatMap((f) =>
+      rule.find(f.text, f.path).map((m) => `${f.path}: ${m}`),
+    );
     expect(violations).toEqual([]);
   });
 
   it("allowlist entries are still used (remove dead ones)", () => {
     const all = files.map((f) => f.text).join("\n");
     for (const entry of LAYOUT_ARBITRARY_ALLOWLIST) expect(all).toContain(entry);
+    for (const path of INLINE_SVG_ALLOWLIST) {
+      expect(files.find((f) => f.path === path)?.text).toContain("<svg");
+    }
   });
 });

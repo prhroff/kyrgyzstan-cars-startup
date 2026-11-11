@@ -4,7 +4,7 @@ import type { SellerType } from "@repo/core";
 import { Camera, MapPin, Ship, Store, Truck, User, type LucideIcon } from "lucide-react";
 import { Link } from "react-aria-components";
 import { cx } from "@/lib/cx";
-import { formatDaysOnSite, formatMileageKm } from "@/lib/format";
+import { formatDaysOnSite, formatEngineVolume, formatMileageKm } from "@/lib/format";
 import { FUEL_LABELS, TRANSMISSION_LABELS } from "@/lib/labels";
 import { sellerLabel, type CarCardData } from "@/lib/listing-card";
 import { Badge } from "./Badge";
@@ -25,18 +25,19 @@ export interface CarCardProps {
   now: Date;
   /** First cards above the fold. */
   priority?: boolean;
+  /**
+   * Top-right corner of the photo, reserved for the favorite toggle (MVP, not built yet).
+   * Kept free of other overlays so adding it later does not reshape the card.
+   */
+  favoriteSlot?: React.ReactNode;
   className?: string;
-}
-
-function engineLabel(cc: number | null): string | null {
-  return cc === null ? null : `${(cc / 1000).toFixed(1)} л`;
 }
 
 /** Facts line: "2.5 л · Гибрид · Автомат". Unknown values are skipped, never guessed. */
 export function carSpecs(listing: CarCardData): string {
   const v = listing.vehicle;
   return [
-    engineLabel(v.engineVolumeCc),
+    formatEngineVolume(v.engineVolumeCc),
     v.fuelType && FUEL_LABELS[v.fuelType],
     v.transmission && TRANSMISSION_LABELS[v.transmission],
   ]
@@ -54,6 +55,7 @@ export function CarCard({
   usdKgsRate,
   now,
   priority = false,
+  favoriteSlot,
   className,
 }: CarCardProps) {
   const title = carTitle(listing);
@@ -78,6 +80,7 @@ export function CarCard({
           sizes="(min-width: 1280px) 300px, (min-width: 640px) 50vw, 100vw"
           priority={priority}
         />
+        {favoriteSlot && <div className="absolute top-2 right-2 z-10">{favoriteSlot}</div>}
         {listing.photos.length > 1 && (
           <span className="absolute right-2 bottom-2 inline-flex h-6 items-center gap-1 rounded-md bg-overlay px-2 text-xs font-medium text-fg-on-accent">
             <Camera aria-hidden className="size-3.5" />

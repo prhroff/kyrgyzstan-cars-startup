@@ -23,6 +23,8 @@ import {
   MAKE_OPTIONS,
   makeListings,
 } from "./fixtures";
+import { ListingSections } from "./ListingSections";
+import { Section, State } from "./showcase-parts";
 
 const LISTINGS = makeListings(6, 42);
 const [EDGE_LONG, EDGE_EMPTY, EDGE_TRANSIT] = EDGE_CASE_LISTINGS;
@@ -73,47 +75,6 @@ const BUTTON_VARIANTS: ButtonVariant[] = ["primary", "secondary", "ghost", "dang
 
 const SELECT_OPTIONS = MAKE_OPTIONS.map(({ id, label }) => ({ id, label }));
 
-function Section({
-  id,
-  title,
-  children,
-}: {
-  id: string;
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section aria-labelledby={id} className="flex flex-col gap-4 border-t border-line py-8">
-      <h2 id={id} className="text-xl font-semibold text-fg">
-        {title}
-      </h2>
-      {children}
-    </section>
-  );
-}
-
-/** Caption + item; `demo` forces a visual state (hover / focus / pressed) for screenshots. */
-function State({
-  label,
-  demo,
-  children,
-  className,
-}: {
-  label: string;
-  demo?: string;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  return (
-    <div className={className ?? "flex min-w-0 flex-col gap-2"}>
-      <span className="text-xs text-fg-subtle">{label}</span>
-      <div data-demo={demo} className="min-w-0">
-        {children}
-      </div>
-    </div>
-  );
-}
-
 export function Showcase() {
   const [filters, setFilters] = useState<FilterValues>({
     ...EMPTY_FILTERS,
@@ -130,7 +91,7 @@ export function Showcase() {
   if (!EDGE_LONG || !EDGE_EMPTY || !EDGE_TRANSIT) return null;
 
   return (
-    <main className="mx-auto flex max-w-content flex-col px-4 pb-16">
+    <main className="mx-auto flex w-full max-w-content flex-col px-4 pb-16">
       <header className="flex flex-col gap-1 py-8">
         <h1 className="text-2xl font-semibold text-fg">Витрина компонентов</h1>
         <p className="text-sm text-fg-muted">
@@ -492,6 +453,8 @@ export function Showcase() {
           </div>
         </div>
       </Section>
+
+      <ListingSections />
 
       <Section id="skeleton" title="Skeleton">
         <LoadingRegion
