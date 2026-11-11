@@ -1,7 +1,7 @@
 import type { Currency } from "@repo/core";
 import { TrendingDown, TrendingUp, Equal } from "lucide-react";
 import { cx } from "@/lib/cx";
-import { convertPrice, formatPrice } from "@/lib/format";
+import { convertPrice, formatPrice, roundApprox } from "@/lib/format";
 import { MARKET_LABELS } from "@/lib/labels";
 import type { MarketPosition } from "@/lib/market";
 import { Badge, type BadgeTone } from "./Badge";
@@ -10,7 +10,7 @@ export interface PriceTagProps {
   /** Price as listed, whole units of `currency`. */
   amount: number;
   currency: Currency;
-  /** Stored USD equivalent (Listing.priceUsd). Used instead of re-converting when the listing is in KGS. */
+  /** Stored USD equivalent (Listing.priceUsd), shown "≈" for KGS listings. */
   priceUsd: number;
   /** KGS per 1 USD. */
   usdKgsRate: number;
@@ -37,8 +37,8 @@ function Approx() {
 }
 
 /**
- * USD first (main reference on the KG market), KGS below.
- * Whatever was converted is marked "≈", so the originally listed price stays traceable.
+ * Big and exact: the price in the seller's currency. Small with "≈": the conversion.
+ * The listed price is never marked "≈", so what the seller wrote stays traceable.
  */
 export function PriceTag({
   amount,
@@ -49,9 +49,12 @@ export function PriceTag({
   size = "md",
   className,
 }: PriceTagProps) {
-  const isUsd = currency === "USD";
-  const usd = isUsd ? amount : priceUsd;
-  const kgs = isUsd ? convertPrice(amount, "USD", "KGS", usdKgsRate) : amount;
+  const other: Currency = currency === "USD" ? "KGS" : "USD";
+  // KGS listings carry a stored USD equivalent (Listing.priceUsd); USD → KGS is converted here.
+  const converted = roundApprox(
+    currency === "USD" ? convertPrice(amount, "USD", "KGS", usdKgsRate) : priceUsd,
+    other,
+  );
 
   return (
     <div className={cx("flex flex-col gap-1", className)}>
@@ -62,8 +65,7 @@ export function PriceTag({
             size === "lg" ? "text-2xl" : "text-xl",
           )}
         >
-          {!isUsd && <Approx />}
-          {formatPrice(usd, "USD")}
+          {formatPrice(amount, currency)}
         </span>
         {market && (
           <Badge tone={MARKET_TONE[market]} icon={MARKET_ICON[market]}>
@@ -72,8 +74,8 @@ export function PriceTag({
         )}
       </div>
       <span className="text-sm whitespace-nowrap text-fg-muted tabular-nums">
-        {isUsd && <Approx />}
-        {formatPrice(kgs, "KGS")}
+        <Approx />
+        {formatPrice(converted, other)}
       </span>
     </div>
   );

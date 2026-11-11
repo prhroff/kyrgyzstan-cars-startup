@@ -47,3 +47,20 @@ export function sellerLabel(seller: CarCardData["seller"]): string {
   if (seller.type === "private" || !name) return label;
   return /[«»"]/.test(name) ? `${label} ${name}` : `${label} «${name}»`;
 }
+
+export type CardBadge = "in_transit" | "not_cleared" | "cleared";
+
+export const MAX_CARD_BADGES = 2;
+
+/**
+ * Status badges on a card, most important first, at most two (the market label is separate).
+ * "Торг" is not a badge — it lives in the specs. Unknown customs (null) gives no badge.
+ */
+export function cardBadges(l: Pick<CarCardData, "availability" | "customsCleared">): CardBadge[] {
+  const all: (CardBadge | false)[] = [
+    l.availability === "in_transit" && "in_transit",
+    l.customsCleared === false && "not_cleared",
+    l.customsCleared === true && "cleared",
+  ];
+  return all.filter((b): b is CardBadge => b !== false).slice(0, MAX_CARD_BADGES);
+}

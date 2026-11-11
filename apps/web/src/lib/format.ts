@@ -38,6 +38,15 @@ export function convertPrice(
   return Math.round(amount / usdKgsRate);
 }
 
+/**
+ * Rounding for a converted ("≈") price: the conversion is approximate anyway, so no false precision.
+ * USD to hundreds (13 493 → 13 500), KGS to thousands.
+ */
+export function roundApprox(amount: number, currency: Currency): number {
+  const step = currency === "USD" ? 100 : 1000;
+  return Math.round(amount / step) * step;
+}
+
 /** "86 000 км"; null → null (caller decides how to show "unknown"). */
 export function formatMileageKm(km: number | null): string | null {
   return km === null ? null : `${formatNumber(km)}${NBSP}км`;

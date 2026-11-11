@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { sellerLabel } from "./listing-card";
+import { cardBadges, sellerLabel } from "./listing-card";
 
 describe("sellerLabel", () => {
   it("never shows a private seller's name", () => {
@@ -21,5 +21,19 @@ describe("sellerLabel", () => {
     expect(sellerLabel({ type: "dealer", name: "Автосалон «Европа»" })).toBe(
       "Дилер Автосалон «Европа»",
     );
+  });
+});
+
+describe("cardBadges", () => {
+  it("orders by priority and caps at two", () => {
+    expect(cardBadges({ availability: "in_transit", customsCleared: false })).toEqual([
+      "in_transit",
+      "not_cleared",
+    ]);
+    expect(cardBadges({ availability: "in_stock", customsCleared: true })).toEqual(["cleared"]);
+  });
+
+  it("unknown customs gives no badge (not «не растаможен»)", () => {
+    expect(cardBadges({ availability: "in_stock", customsCleared: null })).toEqual([]);
   });
 });

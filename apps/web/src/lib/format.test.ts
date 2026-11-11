@@ -10,6 +10,7 @@ import {
   formatPhone,
   formatPrice,
   percentChange,
+  roundApprox,
   pluralRu,
 } from "./format";
 
@@ -155,5 +156,12 @@ describe("formatEngineVolume", () => {
   it("rounds to one decimal, keeps unknown as null", () => {
     expect(n(formatEngineVolume(2487) ?? "")).toBe("2.5 л");
     expect(formatEngineVolume(null)).toBeNull();
+  });
+});
+
+describe("roundApprox", () => {
+  it("rounds USD to hundreds and KGS to thousands", () => {
+    expect(roundApprox(13_493, "USD")).toBe(13_500);
+    expect(roundApprox(2_142_525, "KGS")).toBe(2_143_000);
   });
 });

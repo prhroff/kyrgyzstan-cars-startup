@@ -6,10 +6,17 @@ import { Link } from "react-aria-components";
 import { cx } from "@/lib/cx";
 import { formatDaysOnSite, formatEngineVolume, formatMileageKm } from "@/lib/format";
 import { FUEL_LABELS, TRANSMISSION_LABELS } from "@/lib/labels";
-import { sellerLabel, type CarCardData } from "@/lib/listing-card";
-import { Badge } from "./Badge";
+import { cardBadges, sellerLabel, type CarCardData, type CardBadge } from "@/lib/listing-card";
+import { Badge, type BadgeTone } from "./Badge";
 import { CarPhoto } from "./CarPhoto";
 import { PriceTag } from "./PriceTag";
+
+const BADGE: Record<CardBadge, { label: string; tone: BadgeTone; icon?: LucideIcon }> = {
+  in_transit: { label: "В пути", tone: "accent", icon: Truck },
+  not_cleared: { label: "Не растаможен", tone: "warning" },
+  // Seller's statement, not a check: neutral (success is reserved for real checks).
+  cleared: { label: "Растаможен", tone: "neutral" },
+};
 
 const SELLER_ICON: Record<SellerType, LucideIcon> = {
   private: User,
@@ -63,6 +70,7 @@ export function CarCard({
   const mileage = formatMileageKm(listing.mileageKm);
   const SellerIcon = SELLER_ICON[listing.seller.type];
   const daysOnSite = formatDaysOnSite(listing.publishedAt, now);
+  const badges = cardBadges(listing);
 
   return (
     <article
@@ -122,32 +130,15 @@ export function CarCard({
           )}
         </dl>
 
-        {(listing.availability === "in_transit" ||
-          listing.customsCleared !== null ||
-          listing.negotiable === true) && (
+        {badges.length > 0 && (
           <ul aria-label="Метки" className="flex flex-wrap gap-1.5">
-            {listing.availability === "in_transit" && (
-              <li>
-                <Badge tone="accent" icon={Truck}>
-                  В пути
+            {badges.map((b) => (
+              <li key={b}>
+                <Badge tone={BADGE[b].tone} {...(BADGE[b].icon ? { icon: BADGE[b].icon } : {})}>
+                  {BADGE[b].label}
                 </Badge>
               </li>
-            )}
-            {listing.customsCleared === true && (
-              <li>
-                <Badge tone="success">Растаможен</Badge>
-              </li>
-            )}
-            {listing.customsCleared === false && (
-              <li>
-                <Badge tone="warning">Не растаможен</Badge>
-              </li>
-            )}
-            {listing.negotiable === true && (
-              <li>
-                <Badge>Торг</Badge>
-              </li>
-            )}
+            ))}
           </ul>
         )}
 
