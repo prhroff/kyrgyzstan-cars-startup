@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRng, EDGE_CASE_LISTINGS, MAKE_OPTIONS, makeListings } from "./fixtures";
+import { createRng, DEV_NOW, EDGE_CASE_LISTINGS, MAKE_OPTIONS, makeListings } from "./fixtures";
 
 describe("fixtures", () => {
   it("is deterministic for a seed", () => {
@@ -68,6 +68,23 @@ describe("fixture consistency", () => {
   it("a hybrid trim name never comes with a non-hybrid fuel", () => {
     for (const l of makeListings(300)) {
       if (l.trim?.includes("Hybrid")) expect(l.vehicle.fuelType).toBe("hybrid");
+    }
+  });
+});
+
+describe("fixture sellers", () => {
+  it("covers private sellers, dealers and importers", () => {
+    const types = new Set(makeListings(200).map((l) => l.seller.type));
+    expect(types).toEqual(new Set(["private", "dealer", "importer"]));
+  });
+
+  it("published within the 30-day auto-removal window, never in the future", () => {
+    const month = 30 * 24 * 60 * 60 * 1000;
+    for (const l of [...makeListings(200), ...EDGE_CASE_LISTINGS]) {
+      if (l.publishedAt === null) continue;
+      const age = DEV_NOW.getTime() - l.publishedAt.getTime();
+      expect(age).toBeGreaterThanOrEqual(0);
+      expect(age).toBeLessThan(month);
     }
   });
 });

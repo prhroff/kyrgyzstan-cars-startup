@@ -1,5 +1,5 @@
-import type { SourceType } from "@repo/core";
-import type { Listing, Photo, Vehicle } from "@repo/db";
+import type { Listing, Photo, Seller, Vehicle } from "@repo/db";
+import { SELLER_TYPE_LABELS } from "./labels";
 import type { MarketPosition } from "./market";
 
 /**
@@ -17,6 +17,7 @@ export interface CarCardData extends Pick<
   | "mileageKm"
   | "customsCleared"
   | "availability"
+  | "publishedAt"
 > {
   make: string;
   model: string;
@@ -28,9 +29,21 @@ export interface CarCardData extends Pick<
     "fuelType" | "transmission" | "steering" | "originCountry" | "engineVolumeCc"
   >;
   photos: CarPhoto[];
-  source: { type: SourceType; name: string };
+  /** Only listings posted with us reach the site, so a seller is always known. */
+  seller: Pick<Seller, "type" | "name">;
   /** Null = no market estimate yet. */
   market: MarketPosition | null;
 }
 
 export type CarPhoto = Pick<Photo, "id" | "url" | "width" | "height">;
+
+/**
+ * Seller line on the card: "Частное лицо" or "Дилер «Демо Моторс»".
+ * Private sellers are never named on the card (privacy). A name that already has quotes is not re-quoted.
+ */
+export function sellerLabel(seller: CarCardData["seller"]): string {
+  const label = SELLER_TYPE_LABELS[seller.type];
+  const name = seller.name?.trim();
+  if (seller.type === "private" || !name) return label;
+  return /[«»"]/.test(name) ? `${label} ${name}` : `${label} «${name}»`;
+}

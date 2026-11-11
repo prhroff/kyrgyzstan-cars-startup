@@ -1,9 +1,15 @@
-import type { Currency, FuelType, OriginCountry, SourceType, Transmission } from "@repo/core";
+import type { Currency, FuelType, OriginCountry, Transmission } from "@repo/core";
 import type { CarCardData, CarPhoto } from "@/lib/listing-card";
 import { MARKET_POSITIONS } from "@/lib/market";
 
 /** Dev placeholder rate (same as the seed). Real rate comes from ExchangeRate. */
 export const DEV_USD_KGS_RATE = 87.45;
+
+/** Fixed "now" for fixtures and the showcase, so "на сайте N дней" is stable in screenshots. */
+export const DEV_NOW = new Date("2026-11-11T12:00:00Z");
+
+const daysAgo = (days: number, hours = 0) =>
+  new Date(DEV_NOW.getTime() - (days * 24 + hours) * 60 * 60 * 1000);
 
 /** A trim fixes fuel and engine together, so fixtures never say "1.6T Hybrid · Дизель". */
 interface TrimSpec {
@@ -161,12 +167,13 @@ export const CITIES = [
   "Балыкчы",
 ];
 
-const SOURCES: { type: SourceType; name: string }[] = [
-  { type: "telegram", name: "Telegram · Авторынок (демо)" },
-  { type: "telegram", name: "Telegram · Авто из Кореи (демо)" },
-  { type: "dealer_feed", name: "Дилер «Демо Моторс»" },
-  { type: "site", name: "Сайт объявлений (демо)" },
-  { type: "user", name: "Частное лицо" },
+/** Sellers who post with us: private persons and dealers added by the admin (concierge). Demo names. */
+const SELLERS: CarCardData["seller"][] = [
+  { type: "private", name: null },
+  { type: "private", name: "Азамат" },
+  { type: "private", name: null },
+  { type: "dealer", name: "Демо Моторс" },
+  { type: "importer", name: "Демо Импорт" },
 ];
 
 /** Deterministic PRNG (mulberry32) — same seed, same fixtures. */
@@ -221,7 +228,7 @@ export function makeListing(rng: () => number, index: number): CarCardData {
     id,
     make: spec.make,
     model: spec.model,
-    // Trim name is sometimes missing in parsed ads; fuel/engine stay known from the trim.
+    // Sellers often skip the trim; fuel/engine stay known from the trim.
     trim: rng() < 0.85 ? trim.name : null,
     year,
     priceAmount,
@@ -232,7 +239,7 @@ export function makeListing(rng: () => number, index: number): CarCardData {
       availability === "in_transit" && rng() < 0.3
         ? null
         : Math.max(0, age * int(rng, 9, 22) * 1000),
-    // In transit = not cleared yet; otherwise often unknown for parsed ads.
+    // In transit = not cleared yet; otherwise the seller may leave it unspecified.
     customsCleared: availability === "in_transit" ? false : pick(rng, [true, true, null]),
     availability,
     city: rng() < 0.9 ? pick(rng, CITIES) : null,
@@ -244,7 +251,8 @@ export function makeListing(rng: () => number, index: number): CarCardData {
       engineVolumeCc: trim.cc,
     },
     photos: placeholderPhotos(id, int(rng, 0, 7), index),
-    source: pick(rng, SOURCES),
+    seller: pick(rng, SELLERS),
+    publishedAt: daysAgo(int(rng, 0, 29), int(rng, 0, 23)),
     market: rng() < 0.75 ? pick(rng, MARKET_POSITIONS) : null,
   };
 }
@@ -278,10 +286,11 @@ export const EDGE_CASE_LISTINGS: CarCardData[] = [
       engineVolumeCc: 2999,
     },
     photos: placeholderPhotos("edge-long", 12, 1),
-    source: {
-      type: "telegram",
-      name: "Telegram · Очень длинное название канала с автомобилями из Европы (демо)",
+    seller: {
+      type: "dealer",
+      name: "Автосалон с очень длинным названием «Европа Премиум Моторс Бишкек»",
     },
+    publishedAt: daysAgo(29, 20),
     market: "above",
   },
   {
@@ -306,7 +315,8 @@ export const EDGE_CASE_LISTINGS: CarCardData[] = [
       engineVolumeCc: null,
     },
     photos: [],
-    source: { type: "user", name: "Частное лицо" },
+    seller: { type: "private", name: null },
+    publishedAt: null,
     market: null,
   },
   {
@@ -331,7 +341,8 @@ export const EDGE_CASE_LISTINGS: CarCardData[] = [
       engineVolumeCc: 1496,
     },
     photos: placeholderPhotos("edge-transit", 1, 2),
-    source: { type: "dealer_feed", name: "Дилер «Демо Моторс»" },
+    seller: { type: "importer", name: "Демо Импорт" },
+    publishedAt: daysAgo(0, 3),
     market: "below",
   },
 ];

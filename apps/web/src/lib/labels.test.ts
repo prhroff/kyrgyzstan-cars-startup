@@ -3,7 +3,7 @@ import {
   BODY_TYPES,
   FUEL_TYPES,
   ORIGIN_COUNTRIES,
-  SOURCE_TYPES,
+  SELLER_TYPES,
   STEERING_SIDES,
   TRANSMISSIONS,
 } from "@repo/core";
@@ -14,7 +14,7 @@ import {
   FUEL_LABELS,
   MARKET_LABELS,
   ORIGIN_LABELS,
-  SOURCE_TYPE_LABELS,
+  SELLER_TYPE_LABELS,
   STEERING_LABELS,
   TRANSMISSION_LABELS,
 } from "./labels";
@@ -27,7 +27,7 @@ const cases: [string, readonly string[], Record<string, string>][] = [
   ["body", BODY_TYPES, BODY_LABELS],
   ["origin", ORIGIN_COUNTRIES, ORIGIN_LABELS],
   ["availability", AVAILABILITIES, AVAILABILITY_LABELS],
-  ["source", SOURCE_TYPES, SOURCE_TYPE_LABELS],
+  ["seller", SELLER_TYPES, SELLER_TYPE_LABELS],
   ["market", MARKET_POSITIONS, MARKET_LABELS],
 ];
 

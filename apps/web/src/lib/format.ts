@@ -55,3 +55,18 @@ export function pluralRu(
   if (last >= 2 && last <= 4) return forms[1];
   return forms[2];
 }
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * How long a listing has been on the site, counted in full 24-hour days:
+ * "опубликовано сегодня" / "на сайте 5 дней". Null = not published yet.
+ * `now` comes from the caller so server and client render the same text.
+ */
+export function formatDaysOnSite(publishedAt: Date | null, now: Date): string | null {
+  if (publishedAt === null) return null;
+  // A future date (clock skew) counts as today.
+  const days = Math.max(0, Math.floor((now.getTime() - publishedAt.getTime()) / DAY_MS));
+  if (days === 0) return "опубликовано сегодня";
+  return `на сайте ${formatNumber(days)} ${pluralRu(days, ["день", "дня", "дней"])}`;
+}

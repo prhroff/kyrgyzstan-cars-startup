@@ -1,27 +1,28 @@
 "use client";
 
-import type { SourceType } from "@repo/core";
-import { Camera, Globe, MapPin, Send, Store, Truck, User, type LucideIcon } from "lucide-react";
+import type { SellerType } from "@repo/core";
+import { Camera, MapPin, Ship, Store, Truck, User, type LucideIcon } from "lucide-react";
 import { Link } from "react-aria-components";
 import { cx } from "@/lib/cx";
-import { formatMileageKm } from "@/lib/format";
-import { FUEL_LABELS, SOURCE_TYPE_LABELS, TRANSMISSION_LABELS } from "@/lib/labels";
-import type { CarCardData } from "@/lib/listing-card";
+import { formatDaysOnSite, formatMileageKm } from "@/lib/format";
+import { FUEL_LABELS, TRANSMISSION_LABELS } from "@/lib/labels";
+import { sellerLabel, type CarCardData } from "@/lib/listing-card";
 import { Badge } from "./Badge";
 import { CarPhoto } from "./CarPhoto";
 import { PriceTag } from "./PriceTag";
 
-const SOURCE_ICON: Record<SourceType, LucideIcon> = {
-  telegram: Send,
-  dealer_feed: Store,
-  site: Globe,
-  user: User,
+const SELLER_ICON: Record<SellerType, LucideIcon> = {
+  private: User,
+  dealer: Store,
+  importer: Ship,
 };
 
 export interface CarCardProps {
   listing: CarCardData;
   href: string;
   usdKgsRate: number;
+  /** Reference time for "на сайте N дней" — passed in so server and client render the same. */
+  now: Date;
   /** First cards above the fold. */
   priority?: boolean;
   className?: string;
@@ -47,11 +48,19 @@ export function carTitle(listing: CarCardData): string {
   return `${listing.make} ${listing.model}`;
 }
 
-export function CarCard({ listing, href, usdKgsRate, priority = false, className }: CarCardProps) {
+export function CarCard({
+  listing,
+  href,
+  usdKgsRate,
+  now,
+  priority = false,
+  className,
+}: CarCardProps) {
   const title = carTitle(listing);
   const specs = carSpecs(listing);
   const mileage = formatMileageKm(listing.mileageKm);
-  const SourceIcon = SOURCE_ICON[listing.source.type];
+  const SellerIcon = SELLER_ICON[listing.seller.type];
+  const daysOnSite = formatDaysOnSite(listing.publishedAt, now);
 
   return (
     <article
@@ -148,10 +157,16 @@ export function CarCard({ listing, href, usdKgsRate, priority = false, className
           market={listing.market}
         />
 
-        <p className="flex min-w-0 items-center gap-1.5 border-t border-line pt-3 text-xs text-fg-subtle">
-          <SourceIcon aria-hidden className="size-3.5 shrink-0" />
-          <span className="sr-only">Источник: {SOURCE_TYPE_LABELS[listing.source.type]}, </span>
-          <span className="truncate">{listing.source.name}</span>
+        {/* Wraps instead of truncating: the seller name matters more than the line staying single. */}
+        <p className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 border-t border-line pt-3 text-xs text-fg-subtle">
+          <span className="flex max-w-full min-w-0 items-center gap-1.5">
+            <SellerIcon aria-hidden className="size-3.5 shrink-0" />
+            <span className="truncate">
+              <span className="sr-only">Продавец: </span>
+              {sellerLabel(listing.seller)}
+            </span>
+          </span>
+          {daysOnSite && <span className="ml-auto shrink-0">{daysOnSite}</span>}
         </p>
       </div>
     </article>

@@ -10,7 +10,7 @@ const onest = Onest({
 
 export const metadata: Metadata = {
   title: "Авто КР",
-  description: "Агрегатор автообъявлений Кыргызстана",
+  description: "Объявления о продаже авто в Кыргызстане",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

@@ -3,7 +3,7 @@ import type {
   BodyType,
   FuelType,
   OriginCountry,
-  SourceType,
+  SellerType,
   SteeringSide,
   Transmission,
 } from "@repo/core";
@@ -64,11 +64,10 @@ export const AVAILABILITY_LABELS: Record<Availability, string> = {
   on_order: "Под заказ",
 };
 
-export const SOURCE_TYPE_LABELS: Record<SourceType, string> = {
-  user: "Объявление на сайте",
-  telegram: "Telegram",
-  dealer_feed: "Дилер",
-  site: "Сайт",
+export const SELLER_TYPE_LABELS: Record<SellerType, string> = {
+  private: "Частное лицо",
+  dealer: "Дилер",
+  importer: "Импортёр",
 };
 
 export const MARKET_LABELS: Record<MarketPosition, string> = {

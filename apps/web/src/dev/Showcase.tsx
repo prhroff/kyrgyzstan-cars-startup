@@ -16,6 +16,7 @@ import { CarCardSkeleton, LoadingRegion, Skeleton } from "@/components/ui/Skelet
 import { EMPTY_FILTERS, type FilterValues } from "@/lib/filters";
 import {
   CITIES,
+  DEV_NOW,
   DEV_USD_KGS_RATE,
   EDGE_CASE_LISTINGS,
   MAKE_OPTIONS,
@@ -365,21 +366,32 @@ export function Showcase() {
 
       <Section id="card" title="CarCard">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <State label="длинные названия">
-            <CarCard listing={EDGE_LONG} href="#" usdKgsRate={DEV_USD_KGS_RATE} priority />
+          <State label="длинные названия · дилер">
+            <CarCard
+              listing={EDGE_LONG}
+              href="#"
+              usdKgsRate={DEV_USD_KGS_RATE}
+              now={DEV_NOW}
+              priority
+            />
           </State>
-          <State label="пустые поля, нет фото">
-            <CarCard listing={EDGE_EMPTY} href="#" usdKgsRate={DEV_USD_KGS_RATE} />
+          <State label="пустые поля, нет фото, черновик">
+            <CarCard listing={EDGE_EMPTY} href="#" usdKgsRate={DEV_USD_KGS_RATE} now={DEV_NOW} />
           </State>
-          <State label="в пути · наведение" demo="hover">
-            <CarCard listing={EDGE_TRANSIT} href="#" usdKgsRate={DEV_USD_KGS_RATE} />
+          <State label="в пути · импортёр · наведение" demo="hover">
+            <CarCard listing={EDGE_TRANSIT} href="#" usdKgsRate={DEV_USD_KGS_RATE} now={DEV_NOW} />
           </State>
           <State label="фокус с клавиатуры" demo="focus">
-            <CarCard listing={LISTINGS[0] ?? EDGE_TRANSIT} href="#" usdKgsRate={DEV_USD_KGS_RATE} />
+            <CarCard
+              listing={LISTINGS[0] ?? EDGE_TRANSIT}
+              href="#"
+              usdKgsRate={DEV_USD_KGS_RATE}
+              now={DEV_NOW}
+            />
           </State>
           {LISTINGS.slice(1).map((l) => (
             <State key={l.id} label={`фабрика · ${l.id}`}>
-              <CarCard listing={l} href="#" usdKgsRate={DEV_USD_KGS_RATE} />
+              <CarCard listing={l} href="#" usdKgsRate={DEV_USD_KGS_RATE} now={DEV_NOW} />
             </State>
           ))}
         </div>
@@ -413,7 +425,13 @@ export function Showcase() {
           />
           <div className="grid min-w-0 flex-1 grid-cols-1 content-start gap-4 sm:grid-cols-2">
             {LISTINGS.slice(0, 2).map((l) => (
-              <CarCard key={l.id} listing={l} href="#" usdKgsRate={DEV_USD_KGS_RATE} />
+              <CarCard
+                key={l.id}
+                listing={l}
+                href="#"
+                usdKgsRate={DEV_USD_KGS_RATE}
+                now={DEV_NOW}
+              />
             ))}
           </div>
         </div>

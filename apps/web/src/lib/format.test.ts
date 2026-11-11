@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { convertPrice, formatMileageKm, formatNumber, formatPrice, pluralRu } from "./format";
+import {
+  convertPrice,
+  formatDaysOnSite,
+  formatMileageKm,
+  formatNumber,
+  formatPrice,
+  pluralRu,
+} from "./format";
 
 const n = (s: string) => s.replaceAll(String.fromCodePoint(0xa0), " ");
 
@@ -69,5 +76,33 @@ describe("pluralRu", () => {
     [1001, "объявление"],
   ])("%i → %s", (n, expected) => {
     expect(pluralRu(n, forms)).toBe(expected);
+  });
+});
+
+describe("formatDaysOnSite", () => {
+  const now = new Date("2026-11-11T12:00:00Z");
+  const ago = (hours: number) => new Date(now.getTime() - hours * 60 * 60 * 1000);
+
+  it("is null for an unpublished listing", () => {
+    expect(formatDaysOnSite(null, now)).toBeNull();
+  });
+
+  it.each([
+    [0, "опубликовано сегодня"],
+    [23, "опубликовано сегодня"],
+    [24, "на сайте 1 день"],
+    [24 * 3, "на сайте 3 дня"],
+    [24 * 11, "на сайте 11 дней"],
+    [24 * 21 + 5, "на сайте 21 день"],
+  ])("%i h ago → %s", (hours, expected) => {
+    expect(formatDaysOnSite(ago(hours), now)).toBe(expected);
+  });
+
+  it("treats a future date as today", () => {
+    expect(formatDaysOnSite(ago(-5), now)).toBe("опубликовано сегодня");
+  });
+
+  it("groups large numbers", () => {
+    expect(n(formatDaysOnSite(ago(24 * 1200), now) ?? "")).toBe("на сайте 1 200 дней");
   });
 });
