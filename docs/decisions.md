@@ -74,3 +74,15 @@ pnpm store/cache/state (`pnpm config --location=global`), `npm_config_cache`, `C
 `"$env:LOCALAPPDATA\npm-cache","$env:LOCALAPPDATA\pnpm-cache","$env:LOCALAPPDATA\pnpm\store","$env:LOCALAPPDATA\node\corepack","$env:LOCALAPPDATA\ms-playwright","$env:USERPROFILE\.cache" | ? { Test-Path $_ } | % { "{0} {1:N0} MB" -f $_, ((gci $_ -r -fo -file -ea 0 | measure Length -sum).Sum/1MB) }`
 Если папка снова появилась — значит, процесс запущен без новых переменных (перезапустить терминал/VS Code)
 или инструмент их игнорирует; сверить `pnpm store path`, `npm config get cache`, `echo $env:COREPACK_HOME`.
+
+**2026-11-11 — Проверки качества данных — фиксированные SQL в `packages/db/qa`.**
+`qa/sample.sql` (детерминированная выборка источника) + `qa/checks/*.sql` (каждая возвращает
+`listing_id, problem, details`). Раннер `pnpm --filter @repo/db qa <slug>` выполняет их только
+внутри `BEGIN READ ONLY` и дополнительно отвергает не-SELECT. Агент data-qa запускает раннер, а не
+пишет SQL сам. Новая проверка — новый файл в `qa/checks/`. «Неопознанная марка» = марка не
+встречается в rawPayload (`Listing.makeId` обязателен, NULL невозможен).
+
+**2026-11-11 — Claude-хуки в `.claude/settings.json`.**
+PreToolUse `protect-secrets.mjs` блокирует чтение/правку env-файлов (кроме example), ключей и
+сертификатов — по пути инструмента и по токенам в shell-командах. PostToolUse `format-ts.mjs`
+прогоняет Prettier по изменённому .ts-файлу (уважает .prettierignore, никогда не блокирует).
