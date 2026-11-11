@@ -9,10 +9,13 @@ PostgreSQL 18 (Neon — прод; та же мажорная версия в doc
   `Generation` (code, yearFrom, yearTo). У Make/Model есть `aliases[]` для парсеров.
 - **Vehicle** — физическая машина: `vin` (nullable, unique), make/model/generation, year, specs
   (все nullable: парсинг неполный). Объём двигателя — `engineVolumeCc` (см³), батарея — Decimal кВт·ч.
-- **Listing** — объявление. Дубли с разных источников — **отдельные** Listing, связанные через
-  `DuplicateCluster`. Статусы: draft, active, sold, archived, removed; `closedAt` — когда ушло из active.
-- **Source** — конкретный канал/дилер/сайт или системный `user`. Поле `defaultCurrency` передаётся
-  в `parsePrice`.
+- **Listing** — объявление. Два вида: **наши** (Source `user` — частники и вручную заведённые
+  дилеры; только они показываются на сайте) и **фоновые** из парсинга (только для расчёта рынка,
+  наружу не отдаются). Дубли — **отдельные** Listing, связанные через `DuplicateCluster` (чтобы не
+  считать одну машину в рынке дважды). Статусы: draft, active, sold, archived, removed; `closedAt` —
+  когда ушло из active.
+- **Source** — системный `user` (объявления, поданные у нас) или фоновый канал/дилер/сайт. Поле
+  `defaultCurrency` передаётся в `parsePrice`.
 - **ListingSource** — 1:1 с Listing: `sourceId`, `externalId`, URL, `rawPayload` (jsonb),
   `lastSyncedAt`. Unique `(sourceId, externalId)`. У пользовательских объявлений `externalId` = id
   объявления.
