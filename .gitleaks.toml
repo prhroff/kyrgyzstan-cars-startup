@@ -1,0 +1,41 @@
+# gitleaks config: default ruleset + project-specific secrets the defaults miss
+# (DB connection strings with passwords, Neon credentials, bare Telegram bot tokens).
+# Used by the pre-commit hook (.githooks/pre-commit) and CI. See docs/decisions.md.
+title = "autokg gitleaks config"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "database-url-with-password"
+description = "Connection string with an embedded password"
+regex = '''(?i)\b(?:postgres(?:ql)?|mysql|mariadb|mongodb(?:\+srv)?|rediss?|amqps?)://[^:\s/'"@]+:([^@\s'"]+)@[^\s'"]+'''
+secretGroup = 1
+keywords = ["://"]
+
+  [[rules.allowlists]]
+  description = "Local dev databases, placeholders and masked values"
+  regexTarget = "match"
+  regexes = [
+    '''@(?:localhost|127\.0\.0\.1|host)[:/]''',
+    '''://[^:\s/]+:\$\{?\w+\}?@''',
+    '''://\*\*\*@''',
+  ]
+
+[[rules]]
+id = "neon-role-password"
+description = "Neon role password"
+regex = '''\bnpg_[A-Za-z0-9]{12,}\b'''
+keywords = ["npg_"]
+
+[[rules]]
+id = "neon-api-key"
+description = "Neon API key"
+regex = '''\bnapi_[A-Za-z0-9]{40,}\b'''
+keywords = ["napi_"]
+
+[[rules]]
+id = "telegram-bot-token-bare"
+description = "Telegram bot token without a surrounding keyword"
+regex = '''\b[0-9]{8,10}:AA[0-9A-Za-z_-]{33}\b'''
+keywords = [":aa"]

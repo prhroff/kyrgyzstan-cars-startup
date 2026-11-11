@@ -1,47 +1,38 @@
-// PreToolUse hook: blocks reading/editing env files and other secret files.
+// PreToolUse hook: precise guard for secret files and secret env vars (rules in secret-guard.mjs).
 // Exit code 2 blocks the tool call; stderr is shown to Claude as the reason.
-import { readFileSync } from "node:fs";
-
-// .env, .env.local, .env.production… — but not .env.example. Plus keys, certificates, credential stores.
-const SECRET_PATH =
-  /(^|[\\/])(\.env(\.(?!example$)[^\\/]+)?|[^\\/]+\.(pem|key|p12|pfx)|id_(rsa|ecdsa|ed25519)|credentials\.json|\.pgpass|\.netrc|\.npmrc)$/i;
-
-// The same names as tokens inside a shell command (cat .env.local, Get-Content E:\x\.env, …).
-const SECRET_IN_COMMAND =
-  /(^|[\s'"=:\\/<>|;&(])(\.env(\.(?!example\b)[\w.-]+)?|[\w.-]+\.(pem|p12|pfx)|id_(rsa|ecdsa|ed25519)|credentials\.json|\.pgpass|\.netrc)(?=$|[\s'"\\/;&|)>])/i;
-
-function block(reason) {
-  process.stderr.write(
-    `Заблокировано хуком protect-secrets: ${reason}. Секреты (.env*, ключи) не читаются и не правятся; ` +
-      "нужна переменная — проверь .env.example и zod-схему env.\n",
-  );
-  process.exit(2);
-}
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { checkToolCall } from "./secret-guard.mjs";
 
 let input;
 try {
   input = JSON.parse(readFileSync(0, "utf8"));
 } catch {
-  process.exit(0); // Not our business to break tools on malformed input.
+  process.exit(0); // Malformed payload: don't break tools.
 }
 
-const tool = input.tool_name ?? "";
-const args = input.tool_input ?? {};
+const cwd = input.cwd ?? process.cwd();
+// Git Bash paths (/e/startup-project/…) → E:/startup-project/… for Node on Windows.
+const toNative = (p) =>
+  process.platform === "win32" ? p.replace(/^\/([a-zA-Z])(?=\/|$)/, "$1:") : p;
+const resolve = (p) => path.resolve(cwd, toNative(p));
 
-if (["Read", "Edit", "Write", "MultiEdit", "NotebookEdit", "Grep", "Glob"].includes(tool)) {
-  for (const key of ["file_path", "notebook_path", "path"]) {
-    const value = args[key];
-    if (typeof value === "string" && SECRET_PATH.test(value.trim())) block(`${tool} ${value}`);
-  }
-  if (tool === "Grep" && typeof args.glob === "string" && /\.env(?!\.example)/i.test(args.glob)) {
-    block(`Grep glob ${args.glob}`);
-  }
+const reason = checkToolCall(input, {
+  exists: (p) => existsSync(resolve(p)),
+  list: (dir) => {
+    try {
+      return readdirSync(resolve(dir));
+    } catch {
+      return [];
+    }
+  },
+});
+
+if (reason) {
+  process.stderr.write(
+    `Заблокировано хуком protect-secrets: ${reason}. Содержимое секретов (.env*, ключи) не читается, ` +
+      "не выводится и не правится; упоминать .env в тексте и запускать программы проекта можно.\n",
+  );
+  process.exit(2);
 }
-
-if (tool === "Bash" || tool === "PowerShell") {
-  const command = typeof args.command === "string" ? args.command : "";
-  const match = SECRET_IN_COMMAND.exec(command);
-  if (match) block(`команда обращается к ${match[2]}`);
-}
-
 process.exit(0);

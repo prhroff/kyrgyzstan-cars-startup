@@ -14,11 +14,13 @@
     "typecheck": "turbo run typecheck",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "test:hooks": "node --test .claude/hooks/secret-guard.test.mjs",
     "db:generate": "pnpm --filter @repo/db db:generate",
     "db:migrate": "pnpm --filter @repo/db db:migrate",
     "db:deploy": "pnpm --filter @repo/db db:deploy",
     "db:seed": "pnpm --filter @repo/db db:seed",
-    "db:studio": "pnpm --filter @repo/db db:studio"
+    "db:studio": "pnpm --filter @repo/db db:studio",
+    "prepare": "git config core.hooksPath .githooks || exit 0"
   },
   "devDependencies": {
     "@neon/config": "^1.14.0",

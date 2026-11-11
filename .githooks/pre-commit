@@ -1,0 +1,10 @@
+#!/bin/sh
+# Blocks a commit when staged changes contain secrets (gitleaks + .gitleaks.toml).
+# Enabled by `pnpm install` (prepare: git config core.hooksPath .githooks).
+GITLEAKS="${GITLEAKS_BIN:-gitleaks}"
+if ! command -v "$GITLEAKS" >/dev/null 2>&1; then
+  echo "pre-commit: gitleaks не найден. Установите gitleaks 8.30.1 (PATH или переменная GITLEAKS_BIN)," >&2
+  echo "см. docs/decisions.md. Проверка секретов обязательна, коммит остановлен." >&2
+  exit 1
+fi
+exec "$GITLEAKS" git --pre-commit --staged --redact --no-banner --verbose

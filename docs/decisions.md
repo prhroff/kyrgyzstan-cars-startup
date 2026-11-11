@@ -82,10 +82,36 @@ pnpm store/cache/state (`pnpm config --location=global`), `npm_config_cache`, `C
 пишет SQL сам. Новая проверка — новый файл в `qa/checks/`. «Неопознанная марка» = марка не
 встречается в rawPayload (`Listing.makeId` обязателен, NULL невозможен).
 
-**2026-11-11 — Claude-хуки в `.claude/settings.json`.**
-PreToolUse `protect-secrets.mjs` блокирует чтение/правку env-файлов (кроме example), ключей и
-сертификатов — по пути инструмента и по токенам в shell-командах. PostToolUse `format-ts.mjs`
-прогоняет Prettier по изменённому .ts-файлу (уважает .prettierignore, никогда не блокирует).
+**2026-11-11 — Защита секретов от Claude: permissions.deny + точный shell-хук.**
+Основной механизм — `permissions.deny` в `.claude/settings.json` для Read/Edit `.env`,
+`.env.local`, `.env.*.local`, `.env.{development,production,staging,test}`, ключей. Хук
+`protect-secrets.mjs` (логика — `secret-guard.mjs`, тесты — `pnpm test:hooks`) — вторая линия для
+файловых инструментов и единственная для Bash/PowerShell. Первая версия блокировала любое
+упоминание `.env` в команде (даже в тексте коммита) — заменена разбором команды.
+Блокируется: чтение/вывод содержимого (cat, type, Get-Content, more, less, head, tail, grep/rg/
+findstr/Select-String по файлу или рекурсивно через каталог с секретом, `$(cat …)`, `node -e`
+с readFileSync); вывод секретных переменных (`echo $DATABASE_URL`, `printenv`, `env`, `set`/
+`export -p` без аргументов, `Get-ChildItem env:`, `console.log(process.env.X)`); запись/удаление
+(перенаправление `>`, tee, Set-Content, rm, mv); `git add`/`git commit` с секретными файлами;
+отключение gitleaks (`commit --no-verify`/`-n`, смена `core.hooksPath`, `git add -f .`). Разбор
+видит группировки `( )`/`{ }`/`then`, `bash -c`, `eval`, `cmd /c`, `powershell -c`, `find -exec`,
+`xargs`, глобы `*?[]{a,b}`, heredoc в shell/интерпретатор, `[IO.File]`/`[Environment]`.
+Разрешено: упоминание в тексте, заметках, коммитах (тела heredoc и here-string — данные);
+проверка существования (test -f, Test-Path, ls/dir, stat); `cp`/`Copy-Item .env.example .env`,
+если цели ещё нет; программы проекта, которые сами читают env-файлы (prisma, тесты, скрипты,
+`node --env-file`). Разбор эвристический — это страховка, а не граница безопасности; финальная
+защита от утечки в git — gitleaks.
+PostToolUse `format-ts.mjs` прогоняет Prettier по изменённому .ts-файлу (уважает .prettierignore,
+никогда не блокирует).
+
+**2026-11-11 — gitleaks 8.30.1: pre-commit и CI.**
+Конфиг `.gitleaks.toml` = стандартные правила + свои: строка подключения с паролем (кроме
+localhost/плейсхолдеров), Neon `npg_…`/`napi_…`, голый токен Telegram-бота — стандартные правила
+их не ловят (проверено). Pre-commit: `.githooks/pre-commit` (`gitleaks git --pre-commit --staged`),
+включается `pnpm install` через `prepare: git config core.hooksPath .githooks`; без gitleaks коммит
+останавливается. Локально бинарь — `E:\dev\tools\gitleaks\gitleaks.exe` (sha256 сверен), путь — в
+пользовательской переменной `GITLEAKS_BIN`. CI: job `secrets` — тот же пиннутый бинарь с проверкой
+sha256, `gitleaks dir .` (все файлы) и `gitleaks git .` (вся история).
 
 **2026-11-11 — Postgres закреплён на 18.6 в CI и docker-compose (как в Neon).**
 `SELECT version()` на Neon (production) → `PostgreSQL 18.6`. Вместо плавающего `postgres:18-alpine`
