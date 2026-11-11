@@ -13,6 +13,8 @@ import { Gallery } from "@/components/ui/Gallery";
 import { Input } from "@/components/ui/Input";
 import { PriceTag } from "@/components/ui/PriceTag";
 import { Select } from "@/components/ui/Select";
+import { ViewToggle } from "@/components/ui/ViewToggle";
+import type { CatalogView } from "@/lib/catalog-view";
 import { CarCardSkeleton, LoadingRegion, Skeleton } from "@/components/ui/Skeleton";
 import { catalogCrumbs, listingCrumbs } from "@/lib/breadcrumbs";
 import { EMPTY_FILTERS, type FilterValues } from "@/lib/filters";
@@ -410,6 +412,20 @@ export function Showcase() {
         </div>
       </Section>
 
+      <Section id="view-toggle" title="ViewToggle">
+        <div className="flex flex-wrap gap-6">
+          <State label="интерактивный">
+            <ViewToggleDemo />
+          </State>
+          <State label="плитка выбрана · наведение" demo="hover">
+            <ViewToggle value="grid" onChange={() => undefined} />
+          </State>
+          <State label="фокус с клавиатуры" demo="focus">
+            <ViewToggle value="list" onChange={() => undefined} />
+          </State>
+        </div>
+      </Section>
+
       <Section id="breadcrumbs" title="Breadcrumbs">
         <div className="flex flex-col gap-4">
           <State label="каталог целиком">
@@ -546,4 +562,9 @@ export function Showcase() {
       </Section>
     </main>
   );
+}
+
+function ViewToggleDemo() {
+  const [view, setView] = useState<CatalogView>("list");
+  return <ViewToggle value={view} onChange={setView} />;
 }

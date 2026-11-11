@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { SearchX } from "lucide-react";
 import { CatalogControls } from "@/components/catalog/CatalogControls";
-import { ListingGrid } from "@/components/listing/ListingGrid";
+import { CatalogResults } from "@/components/catalog/CatalogResults";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LinkButton } from "@/components/ui/LinkButton";
@@ -9,6 +10,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { getCities, getMakeOptions, getNow, getUsdKgsRate, searchListings } from "@/data/listings";
 import { catalogQueryString, parseCatalogQuery, type RawSearchParams } from "@/lib/search-params";
 import { catalogCrumbs } from "@/lib/breadcrumbs";
+import { CATALOG_VIEW_COOKIE, parseCatalogView } from "@/lib/catalog-view";
 import { formatNumber } from "@/lib/format";
 import { catalogMeta } from "@/lib/seo";
 
@@ -34,13 +36,15 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 export default async function CatalogPage({ searchParams }: Props) {
   const raw = await searchParams;
   const query = parseCatalogQuery(raw);
-  const [result, makes, cities, now, rate] = await Promise.all([
+  const [result, makes, cities, now, rate, jar] = await Promise.all([
     searchListings(query.filters, query.sort, query.page),
     getMakeOptions(),
     getCities(),
     getNow(),
     getUsdKgsRate(),
+    cookies(),
   ]);
+  const view = parseCatalogView(jar.get(CATALOG_VIEW_COOKIE)?.value);
   const meta = catalogMeta(query.filters, result.total, makes);
   // "Все марки" (home) links with ?pick=make: open the make picker. Not a filter, not kept in links.
   const pickMake = raw.pick === "make";
@@ -63,16 +67,11 @@ export default async function CatalogPage({ searchParams }: Props) {
         makes={makes}
         cities={cities}
         autoOpenMake={pickMake}
+        initialView={view}
       >
         {result.items.length > 0 ? (
           <>
-            <ListingGrid
-              listings={result.items}
-              usdKgsRate={rate}
-              now={now}
-              columns="list"
-              priorityCount={2}
-            />
+            <CatalogResults listings={result.items} usdKgsRate={rate} now={now} priorityCount={2} />
             <Pagination page={result.page} pageCount={result.pageCount} baseHref={baseHref} />
           </>
         ) : (

@@ -4,19 +4,31 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { FilterPanel, type MakeOption } from "@/components/ui/FilterPanel";
 import { SortSelect } from "@/components/ui/SortSelect";
+import { ViewToggle } from "@/components/ui/ViewToggle";
 import type { Sort } from "@/data/types";
 import { X } from "lucide-react";
 import { Button as AriaButton } from "react-aria-components";
 import { Button } from "@/components/ui/Button";
 import { focusRing } from "@/components/ui/styles";
+import { CATALOG_VIEW_COOKIE, type CatalogView } from "@/lib/catalog-view";
 import { cx } from "@/lib/cx";
 import { filterChips } from "@/lib/filter-chips";
 import { EMPTY_FILTERS, isInvalidRange, type FilterValues } from "@/lib/filters";
 import { formatNumber, pluralRu } from "@/lib/format";
 import { catalogQueryString, type CatalogQuery } from "@/lib/search-params";
+import { CatalogViewContext } from "./CatalogResults";
 
 /** Typing in a price field should not navigate on every keystroke. */
 const URL_DEBOUNCE_MS = 400;
+
+/** Remembers rows/tiles for a year. Blocked cookies: the choice still holds until reload. */
+function saveViewCookie(view: CatalogView): void {
+  try {
+    document.cookie = `${CATALOG_VIEW_COOKIE}=${view}; path=/; max-age=31536000; samesite=lax`;
+  } catch {
+    // ignore
+  }
+}
 
 export interface CatalogControlsProps {
   query: CatalogQuery;
@@ -25,6 +37,8 @@ export interface CatalogControlsProps {
   cities: readonly string[];
   /** "Все марки" on the home page links here with the make picker open. */
   autoOpenMake?: boolean;
+  /** Rows or tiles, from the cookie (server side). */
+  initialView: CatalogView;
   /** The result list (server-rendered). */
   children: React.ReactNode;
 }
@@ -39,8 +53,10 @@ export function CatalogControls({
   makes,
   cities,
   autoOpenMake = false,
+  initialView,
   children,
 }: CatalogControlsProps) {
+  const [view, setView] = useState<CatalogView>(initialView);
   const router = useRouter();
   const pathname = usePathname();
   const [filters, setFilters] = useState<FilterValues>(query.filters);
@@ -147,9 +163,21 @@ export function CatalogControls({
           ) : (
             <span className="flex-1" />
           )}
-          <SortSelect value={query.sort} onChange={onSortChange} className="w-full sm:w-72" />
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            <SortSelect value={query.sort} onChange={onSortChange} className="w-full sm:w-72" />
+            {/* Phones show one card per row either way: the switch would change nothing there. */}
+            <div className="hidden sm:block">
+              <ViewToggle
+                value={view}
+                onChange={(next) => {
+                  setView(next);
+                  saveViewCookie(next);
+                }}
+              />
+            </div>
+          </div>
         </div>
-        {children}
+        <CatalogViewContext value={view}>{children}</CatalogViewContext>
       </div>
     </div>
   );
