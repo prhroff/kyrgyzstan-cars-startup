@@ -14,6 +14,7 @@ import { PriceTag } from "@/components/ui/PriceTag";
 import { Select } from "@/components/ui/Select";
 import { CarCardSkeleton, LoadingRegion, Skeleton } from "@/components/ui/Skeleton";
 import { EMPTY_FILTERS, type FilterValues } from "@/lib/filters";
+import { vinLengthMessage, yearRangeMessage } from "@/lib/messages";
 import {
   CITIES,
   DEV_NOW,
@@ -201,14 +202,14 @@ export function Showcase() {
         <div className="flex flex-wrap items-end gap-3">
           <State label="sm">
             <Button size="sm" iconLeading={Plus}>
-              Подать
+              Подать объявление
             </Button>
           </State>
           <State label="md">
             <Button iconTrailing={ArrowRight}>Показать</Button>
           </State>
           <State label="lg">
-            <Button size="lg">Позвонить продавцу</Button>
+            <Button size="lg">Показать телефон</Button>
           </State>
           <State label="только иконка">
             <Button variant="secondary" iconOnly iconLeading={Share2} aria-label="Поделиться" />
@@ -247,11 +248,16 @@ export function Showcase() {
               label="VIN"
               defaultValue="JTDBR32E60"
               isInvalid
-              errorMessage="VIN должен содержать 17 символов"
+              errorMessage={vinLengthMessage("JTDBR32E60")}
             />
           </State>
           <State label="ошибка + фокус" demo="focus">
-            <Input label="Год" defaultValue="1890" isInvalid errorMessage="Год вне диапазона" />
+            <Input
+              label="Год"
+              defaultValue="1890"
+              isInvalid
+              errorMessage={yearRangeMessage(DEV_NOW)}
+            />
           </State>
           <State label="без подписи (aria-label)">
             <Input aria-label="Поиск" placeholder="Марка, модель или VIN" />
@@ -308,7 +314,7 @@ export function Showcase() {
             </Checkbox>
           </State>
           <State label="ошибка">
-            <Checkbox isInvalid>Согласен с правилами</Checkbox>
+            <Checkbox isInvalid>Принимаю правила</Checkbox>
           </State>
         </div>
       </Section>
@@ -480,7 +486,7 @@ export function Showcase() {
             <EmptyState
               icon={WifiOff}
               title="Не удалось загрузить объявления"
-              description="Проверьте подключение к интернету."
+              description="Возможно, пропал интернет. Попробуйте ещё раз."
               actions={<Button iconLeading={RefreshCw}>Повторить</Button>}
             />
           </div>

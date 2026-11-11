@@ -34,7 +34,7 @@ export const STEERING_LABELS: Record<SteeringSide, string> = {
 
 export const BODY_LABELS: Record<BodyType, string> = {
   sedan: "Седан",
-  hatchback: "Хэтчбек",
+  hatchback: "Хетчбэк",
   liftback: "Лифтбек",
   wagon: "Универсал",
   suv: "Внедорожник",
@@ -46,16 +46,16 @@ export const BODY_LABELS: Record<BodyType, string> = {
   van: "Фургон",
 };
 
-/** "из Кореи" — used as "Авто из …". */
+/** Full phrase, shown as is: "Пригнана из Кореи" for imports, "Местная машина" for local cars. */
 export const ORIGIN_LABELS: Record<OriginCountry, string> = {
-  korea: "из Кореи",
-  china: "из Китая",
-  usa: "из США",
-  japan: "из Японии",
-  uae: "из ОАЭ",
-  europe: "из Европы",
-  local: "местная",
-  other: "другая страна",
+  korea: "Пригнана из Кореи",
+  china: "Пригнана из Китая",
+  usa: "Пригнана из США",
+  japan: "Пригнана из Японии",
+  uae: "Пригнана из ОАЭ",
+  europe: "Пригнана из Европы",
+  local: "Местная машина",
+  other: "Пригнана из другой страны",
 };
 
 export const AVAILABILITY_LABELS: Record<Availability, string> = {
@@ -73,5 +73,5 @@ export const SELLER_TYPE_LABELS: Record<SellerType, string> = {
 export const MARKET_LABELS: Record<MarketPosition, string> = {
   below: "Ниже рынка",
   fair: "В рынке",
-  above: "Дорого",
+  above: "Выше рынка",
 };

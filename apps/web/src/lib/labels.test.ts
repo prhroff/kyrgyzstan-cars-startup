@@ -39,4 +39,11 @@ describe("labels", () => {
       for (const v of values) expect(labels[v]?.trim()).toBeTruthy();
     },
   );
+
+  it("origin: imports read 'Пригнана из …', local is 'Местная машина'", () => {
+    for (const c of ORIGIN_COUNTRIES) {
+      if (c === "local") expect(ORIGIN_LABELS[c]).toBe("Местная машина");
+      else expect(ORIGIN_LABELS[c]).toMatch(/^Пригнана из \S/);
+    }
+  });
 });

@@ -111,7 +111,9 @@ export function FilterFields({
             isInvalid={yearInvalid}
           />
         </div>
-        {yearInvalid && <p className="text-sm text-danger">Год «от» больше года «до»</p>}
+        {yearInvalid && (
+          <p className="text-sm text-danger">Год «от» должен быть не позже года «до»</p>
+        )}
       </fieldset>
 
       <fieldset className="flex flex-col gap-1.5">
@@ -140,7 +142,9 @@ export function FilterFields({
             isInvalid={priceInvalid}
           />
         </div>
-        {priceInvalid && <p className="text-sm text-danger">Цена «от» больше цены «до»</p>}
+        {priceInvalid && (
+          <p className="text-sm text-danger">Цена «от» должна быть не больше цены «до»</p>
+        )}
       </fieldset>
 
       <Select
