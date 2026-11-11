@@ -1,6 +1,7 @@
 import type {
   Availability,
   BodyType,
+  Drivetrain,
   FuelType,
   OriginCountry,
   SellerType,
@@ -74,4 +75,10 @@ export const MARKET_LABELS: Record<MarketPosition, string> = {
   below: "Ниже рынка",
   fair: "В рынке",
   above: "Выше рынка",
+};
+
+export const DRIVETRAIN_LABELS: Record<Drivetrain, string> = {
+  fwd: "Передний",
+  rwd: "Задний",
+  awd: "Полный",
 };

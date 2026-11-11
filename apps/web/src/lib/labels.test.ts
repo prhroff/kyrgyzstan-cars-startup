@@ -1,6 +1,7 @@
 import {
   AVAILABILITIES,
   BODY_TYPES,
+  DRIVETRAINS,
   FUEL_TYPES,
   ORIGIN_COUNTRIES,
   SELLER_TYPES,
@@ -11,6 +12,7 @@ import { describe, expect, it } from "vitest";
 import {
   AVAILABILITY_LABELS,
   BODY_LABELS,
+  DRIVETRAIN_LABELS,
   FUEL_LABELS,
   MARKET_LABELS,
   ORIGIN_LABELS,
@@ -25,6 +27,7 @@ const cases: [string, readonly string[], Record<string, string>][] = [
   ["transmission", TRANSMISSIONS, TRANSMISSION_LABELS],
   ["steering", STEERING_SIDES, STEERING_LABELS],
   ["body", BODY_TYPES, BODY_LABELS],
+  ["drivetrain", DRIVETRAINS, DRIVETRAIN_LABELS],
   ["origin", ORIGIN_COUNTRIES, ORIGIN_LABELS],
   ["availability", AVAILABILITIES, AVAILABILITY_LABELS],
   ["seller", SELLER_TYPES, SELLER_TYPE_LABELS],

@@ -1,10 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
   convertPrice,
+  formatDate,
   formatDaysOnSite,
+  formatEngineVolume,
+  formatMemberSince,
   formatMileageKm,
   formatNumber,
+  formatPhone,
   formatPrice,
+  percentChange,
   pluralRu,
 } from "./format";
 
@@ -104,5 +109,51 @@ describe("formatDaysOnSite", () => {
 
   it("groups large numbers", () => {
     expect(n(formatDaysOnSite(ago(24 * 1200), now) ?? "")).toBe("на сайте 1 200 дней");
+  });
+});
+
+describe("formatDate", () => {
+  const now = new Date("2026-11-11T12:00:00Z");
+  it("omits the current year, uses genitive month", () => {
+    expect(n(formatDate(new Date("2026-10-30T10:00:00Z"), now))).toBe("30 октября");
+  });
+  it("keeps another year", () => {
+    expect(n(formatDate(new Date("2025-03-01T10:00:00Z"), now))).toBe("1 марта 2025");
+  });
+  it("counts the day in Bishkek time (UTC+6)", () => {
+    expect(n(formatDate(new Date("2026-10-30T19:00:00Z"), now))).toBe("31 октября");
+  });
+});
+
+describe("formatMemberSince", () => {
+  it("is a whole phrase with genitive month", () => {
+    expect(formatMemberSince(new Date("2026-03-15T00:00:00Z"))).toBe("На сайте с марта 2026");
+  });
+});
+
+describe("formatPhone", () => {
+  it("groups a KG number", () => {
+    expect(n(formatPhone("+996555123456"))).toBe("+996 555 123 456");
+  });
+  it("leaves other numbers as is", () => {
+    expect(formatPhone("+79991234567")).toBe("+79991234567");
+  });
+});
+
+describe("percentChange", () => {
+  it("rounds to whole percent, keeps the sign", () => {
+    expect(percentChange(15500, 16500)).toBe(-6);
+    expect(percentChange(16500, 15500)).toBe(6);
+    expect(percentChange(100, 100)).toBe(0);
+  });
+  it("rejects a non-positive base", () => {
+    expect(() => percentChange(1, 0)).toThrow(RangeError);
+  });
+});
+
+describe("formatEngineVolume", () => {
+  it("rounds to one decimal, keeps unknown as null", () => {
+    expect(n(formatEngineVolume(2487) ?? "")).toBe("2.5 л");
+    expect(formatEngineVolume(null)).toBeNull();
   });
 });
