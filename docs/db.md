@@ -57,9 +57,11 @@ ID: UUID v7 для сущностей, Int autoincrement для справочн
 ## CHECK-ограничения
 
 Prisma их не выражает и не учитывает при diff (drift не возникает). Лежат в конце
-`migrations/20261111000000_init/migration.sql`: цены > 0, год 1900–2100, пробег ≥ 0, пара
+`migrations/20261111000000_init/migration.sql`: цены > 0, пробег ≥ 0, пара
 `mileageValue`/`mileageUnit` задаётся вместе, формат VIN, E.164, hex для phash/sha256,
 confidence 0..1, курс > 0 и base ≠ quote, `yearTo ≥ yearFrom`.
+Год `Vehicle`/`Listing`: `CHECK year >= 1950` + триггер «не позже следующего года по UTC»
+(`20261111120000_vehicle_year_bounds`); границы = `@repo/core/year.ts`, сверяет `year-bounds.test.ts`.
 
 ## Миграции
 
