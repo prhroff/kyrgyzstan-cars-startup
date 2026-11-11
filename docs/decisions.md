@@ -70,3 +70,7 @@ pnpm 12 по умолчанию блокирует install-скрипты зав
 Диск C переполнен, прав администратора нет. Проект — `E:\startup-project`, кэши — `E:\dev\.cache`:
 pnpm store/cache/state (`pnpm config --location=global`), `npm_config_cache`, `COREPACK_HOME`,
 `PLAYWRIGHT_BROWSERS_PATH` (пользовательские переменные через `setx`). Бэкап истории — `E:\dev\backup`.
+Проверка, что кэши не растут на C (PowerShell; пусто или пара МБ — норма):
+`"$env:LOCALAPPDATA\npm-cache","$env:LOCALAPPDATA\pnpm-cache","$env:LOCALAPPDATA\pnpm\store","$env:LOCALAPPDATA\node\corepack","$env:LOCALAPPDATA\ms-playwright","$env:USERPROFILE\.cache" | ? { Test-Path $_ } | % { "{0} {1:N0} MB" -f $_, ((gci $_ -r -fo -file -ea 0 | measure Length -sum).Sum/1MB) }`
+Если папка снова появилась — значит, процесс запущен без новых переменных (перезапустить терминал/VS Code)
+или инструмент их игнорирует; сверить `pnpm store path`, `npm config get cache`, `echo $env:COREPACK_HOME`.
