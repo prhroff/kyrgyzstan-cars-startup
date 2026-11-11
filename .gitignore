@@ -9,3 +9,4 @@ coverage/
 packages/db/src/generated/
 .DS_Store
 Thumbs.db
+.neon
