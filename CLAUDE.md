@@ -62,6 +62,9 @@ TEST_DATABASE_URL=... pnpm test   # + интеграционные DB-тесты
   и прочий SQL, который Prisma не выражает, — дописывать в миграцию, созданную
   `prisma migrate dev --create-only`.
 - **Не трогать сгенерированные файлы**: `packages/db/src/generated/**`, `dist/`, `pnpm-lock.yaml` руками.
+- **База в Neon**: строки подключения лежат в `.env.local` (`neon env pull --file .env.local`), он
+  приоритетнее `.env`. Prisma CLI (migrate/diff/studio) использует прямой `DATABASE_URL_UNPOOLED`,
+  приложение и сид — пулинг `DATABASE_URL`. Строки подключения не выводить в логи и чат.
 - **Секреты не коммитить**: `.env` в `.gitignore`, новые переменные — в `.env.example` и zod-схему.
 - **Маленькие коммиты** по логическим шагам, Conventional Commits (`feat(core): …`, `fix(db): …`).
 - Nullable `Boolean?` в данных из парсинга означает «неизвестно» — не подставлять `false`.
