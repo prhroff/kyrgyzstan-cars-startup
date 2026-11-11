@@ -28,6 +28,7 @@ describe.skipIf(!url)("vehicle year bounds (DB)", () => {
 
   afterAll(async () => {
     await db.vehicle.deleteMany({ where: { makeId } });
+    await db.model.deleteMany({ where: { makeId } });
     await db.make.delete({ where: { id: makeId } });
     await db.$disconnect();
   });
