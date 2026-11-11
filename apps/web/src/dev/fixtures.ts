@@ -1,4 +1,4 @@
-import type { Currency, FuelType, OriginCountry, Transmission } from "@repo/core";
+import type { BodyType, Currency, FuelType, OriginCountry, Transmission } from "@repo/core";
 import type { CarCardData, CarPhoto } from "@/lib/listing-card";
 import { MARKET_POSITIONS } from "@/lib/market";
 
@@ -144,6 +144,15 @@ const MODELS: ModelSpec[] = [
     origins: ["europe", "korea"],
   },
   {
+    make: "Kia",
+    model: "Carnival",
+    trims: [t("2.2 CRDi", "diesel", 2199), t("3.5 Signature", "petrol", 3470)],
+    years: [2016, 2024],
+    priceUsd: [18000, 42000],
+    transmission: ["automatic"],
+    origins: ["korea"],
+  },
+  {
     make: "Lada",
     model: "Granta",
     trims: [t("1.6 Classic", "petrol", 1596), t("1.6 Comfort", "petrol", 1596)],
@@ -153,6 +162,23 @@ const MODELS: ModelSpec[] = [
     origins: ["local"],
   },
 ];
+
+/** Body type per fixture model — the "segment" (similar listings, catalog tiles). */
+export const MODEL_BODY: Record<string, BodyType> = {
+  Camry: "sedan",
+  Sonata: "sedan",
+  K5: "sedan",
+  "E-Класс": "sedan",
+  Granta: "sedan",
+  "Song Plus": "crossover",
+  RX: "crossover",
+  Tucson: "crossover",
+  "GLE-Класс Купе": "crossover",
+  L7: "suv",
+  "001": "wagon",
+  Fit: "hatchback",
+  Carnival: "minivan",
+};
 
 export const CITIES = [
   "Бишкек",
@@ -242,13 +268,15 @@ export function makeListing(rng: () => number, index: number): CarCardData {
     // In transit = not cleared yet; otherwise the seller may leave it unspecified.
     customsCleared: availability === "in_transit" ? false : pick(rng, [true, true, null]),
     availability,
-    city: rng() < 0.9 ? pick(rng, CITIES) : null,
+    // Half of the listings are in Bishkek (where the site is promoted), the rest across the country.
+    city: rng() < 0.9 ? (rng() < 0.5 ? "Бишкек" : pick(rng, CITIES)) : null,
     vehicle: {
       fuelType: trim.fuel,
       transmission: pick(rng, spec.transmission),
       steering: origin === "japan" && rng() < 0.6 ? "right" : "left",
       originCountry: origin,
       engineVolumeCc: trim.cc,
+      bodyType: MODEL_BODY[spec.model] ?? null,
     },
     photos: placeholderPhotos(id, int(rng, 0, 7), index),
     seller: pick(rng, SELLERS),
@@ -284,6 +312,7 @@ export const EDGE_CASE_LISTINGS: CarCardData[] = [
       steering: "left",
       originCountry: "europe",
       engineVolumeCc: 2999,
+      bodyType: "crossover",
     },
     photos: placeholderPhotos("edge-long", 12, 1),
     seller: {
@@ -313,6 +342,7 @@ export const EDGE_CASE_LISTINGS: CarCardData[] = [
       steering: null,
       originCountry: null,
       engineVolumeCc: null,
+      bodyType: null,
     },
     photos: [],
     seller: { type: "private", name: null },
@@ -339,6 +369,7 @@ export const EDGE_CASE_LISTINGS: CarCardData[] = [
       steering: "left",
       originCountry: "china",
       engineVolumeCc: 1496,
+      bodyType: "suv",
     },
     photos: placeholderPhotos("edge-transit", 1, 2),
     seller: { type: "importer", name: "Демо Импорт" },

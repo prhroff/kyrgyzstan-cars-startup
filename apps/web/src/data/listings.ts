@@ -1,7 +1,14 @@
 import { EMPTY_FILTERS, type FilterValues } from "@/lib/filters";
 import type { CarCardData } from "@/lib/listing-card";
 import { FIXTURE_LISTINGS, FIXTURE_NOW, FIXTURE_USD_KGS_RATE } from "./fixtures";
-import { makeOptions, rankSimilar, search, type MakeOptionData } from "./search";
+import {
+  makeCounts,
+  makeOptions,
+  rankSimilar,
+  search,
+  type MakeCount,
+  type MakeOptionData,
+} from "./search";
 import type { ListingDetail, SearchResult, Sort } from "./types";
 
 /**
@@ -34,6 +41,7 @@ function toCard(l: ListingDetail): CarCardData {
       steering: l.vehicle.steering,
       originCountry: l.vehicle.originCountry,
       engineVolumeCc: l.vehicle.engineVolumeCc,
+      bodyType: l.vehicle.bodyType,
     },
     photos: l.photos,
     seller: { type: l.seller.type, name: l.seller.name },
@@ -73,6 +81,30 @@ export function getSimilarListings(listing: ListingDetail, limit: number): Promi
   const candidate = (l: ListingDetail) => ({ ...l, bodyType: l.vehicle.bodyType });
   return Promise.resolve(
     rankSimilar(candidate(listing), active().map(candidate), limit).map(toCard),
+  );
+}
+
+export interface CatalogStats {
+  /** Active listings in the city (null = whole country). */
+  total: number;
+  makes: MakeCount[];
+}
+
+export function getCatalogStats(city: string | null): Promise<CatalogStats> {
+  const cards = active()
+    .filter((l) => city === null || l.city === city)
+    .map(toCard);
+  return Promise.resolve({ total: cards.length, makes: makeCounts(cards) });
+}
+
+/** For "Вы смотрели": active listings in the given order; unknown or closed ids are skipped. */
+export function getListingsByIds(ids: readonly string[]): Promise<CarCardData[]> {
+  const byId = new Map(active().map((l) => [l.id, l]));
+  return Promise.resolve(
+    ids.flatMap((id) => {
+      const l = byId.get(id);
+      return l ? [toCard(l)] : [];
+    }),
   );
 }
 

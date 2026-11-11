@@ -1,4 +1,4 @@
-import { toE164, type BodyType } from "@repo/core";
+import { toE164 } from "@repo/core";
 import {
   createRng,
   DEV_NOW,
@@ -40,22 +40,6 @@ const DESCRIPTIONS = [
   "Состояние нормальное для своего года. Есть вмятина на заднем бампере, на фото видно. Ходовая перебрана весной.",
   null,
 ];
-
-/** Body type per fixture model — the "segment" for similar listings. */
-const MODEL_BODY: Record<string, BodyType> = {
-  Camry: "sedan",
-  Sonata: "sedan",
-  K5: "sedan",
-  "E-Класс": "sedan",
-  Granta: "sedan",
-  "Song Plus": "crossover",
-  RX: "crossover",
-  Tucson: "crossover",
-  "GLE-Класс Купе": "crossover",
-  L7: "suv",
-  "001": "wagon",
-  Fit: "hatchback",
-};
 
 const DEALER_MEMBER_SINCE = new Date("2026-03-02T05:00:00Z");
 const IMPORTER_MEMBER_SINCE = new Date("2026-05-20T05:00:00Z");
@@ -178,7 +162,7 @@ function toDetail(
     vehicle: {
       ...card.vehicle,
       vin: vinRoll < 0.3 ? null : (VALID_VINS[index % VALID_VINS.length] ?? null),
-      bodyType: MODEL_BODY[card.model] ?? null,
+      bodyType: card.vehicle.bodyType,
       drivetrain: null,
       color: null,
     },

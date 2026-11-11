@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { EMPTY_FILTERS } from "@/lib/filters";
 import {
+  getCatalogStats,
   getCities,
   getLatestListings,
   getListing,
+  getListingsByIds,
   getSimilarListings,
   searchListings,
 } from "./listings";
@@ -36,5 +38,18 @@ describe("listings data layer", () => {
     const cities = await getCities();
     expect(new Set(cities).size).toBe(cities.length);
     expect(cities).toEqual([...cities].sort((a, b) => a.localeCompare(b, "ru")));
+  });
+
+  it("stats: city subset of the country, make counts add up", async () => {
+    const all = await getCatalogStats(null);
+    const bishkek = await getCatalogStats("Бишкек");
+    expect(bishkek.total).toBeGreaterThan(0);
+    expect(bishkek.total).toBeLessThan(all.total);
+    expect(all.makes.reduce((n, m) => n + m.count, 0)).toBe(all.total);
+  });
+
+  it("by ids: keeps order, skips closed and unknown", async () => {
+    const r = await getListingsByIds(["demo-novin", "demo-sold", "nope", "demo-ok"]);
+    expect(r.map((l) => l.id)).toEqual(["demo-novin", "demo-ok"]);
   });
 });

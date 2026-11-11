@@ -1,18 +1,24 @@
 import {
+  BODY_TYPES,
   FUEL_TYPES,
+  ORIGIN_COUNTRIES,
   STEERING_SIDES,
   TRANSMISSIONS,
+  type BodyType,
   type FuelType,
+  type OriginCountry,
   type SteeringSide,
   type Transmission,
 } from "@repo/core";
 import { SORTS, type Sort } from "@/data/types";
+import { ALL_CITIES } from "./city";
 import { EMPTY_FILTERS, parseIntegerInput, type FilterValues } from "./filters";
 
 /**
  * Catalog state <-> URL query, so a search can be shared as a link.
  * Parsing is lenient: an unknown or malformed value is dropped, never an error page.
  * Example: /cars?make=toyota&model=toyota:camry&priceTo=20000&fuel=petrol,hybrid&sort=price_asc&page=2
+ * Flags: availability=in_transit ("В пути"), market=below ("Ниже рынка"); q = free text.
  */
 
 export interface CatalogQuery {
@@ -55,6 +61,7 @@ export function parseCatalogQuery(raw: RawSearchParams): CatalogQuery {
   const page = int(raw, "page");
   return {
     filters: {
+      q: first(raw, "q"),
       make,
       // A model only makes sense under its make ("toyota:camry" needs make=toyota).
       model: make !== null && model?.startsWith(`${make}:`) ? model : null,
@@ -62,10 +69,15 @@ export function parseCatalogQuery(raw: RawSearchParams): CatalogQuery {
       yearTo: int(raw, "yearTo"),
       priceFrom: int(raw, "priceFrom"),
       priceTo: int(raw, "priceTo"),
-      city: first(raw, "city"),
+      // "all" = whole country (explicit, to override the default city on the home page).
+      city: first(raw, "city") === ALL_CITIES ? null : first(raw, "city"),
       fuel: list<FuelType>(FUEL_TYPES, raw, "fuel"),
       steering: oneOf<SteeringSide>(STEERING_SIDES, first(raw, "steering")),
       transmission: list<Transmission>(TRANSMISSIONS, raw, "transmission"),
+      body: list<BodyType>(BODY_TYPES, raw, "body"),
+      origin: list<OriginCountry>(ORIGIN_COUNTRIES, raw, "origin"),
+      inTransit: first(raw, "availability") === "in_transit",
+      belowMarket: first(raw, "market") === "below",
     },
     sort: oneOf(SORTS, first(raw, "sort")) ?? DEFAULT_SORT,
     page: page !== null && page >= 1 ? page : 1,
@@ -79,6 +91,7 @@ export function catalogQueryString(q: Partial<CatalogQuery>): string {
   const set = (key: string, v: string | number | null) => {
     if (v !== null) p.set(key, String(v));
   };
+  set("q", f.q);
   set("make", f.make);
   set("model", f.make === null ? null : f.model);
   set("yearFrom", f.yearFrom);
@@ -89,6 +102,10 @@ export function catalogQueryString(q: Partial<CatalogQuery>): string {
   if (f.fuel.length > 0) p.set("fuel", f.fuel.join(","));
   set("steering", f.steering);
   if (f.transmission.length > 0) p.set("transmission", f.transmission.join(","));
+  if (f.body.length > 0) p.set("body", f.body.join(","));
+  if (f.origin.length > 0) p.set("origin", f.origin.join(","));
+  if (f.inTransit) p.set("availability", "in_transit");
+  if (f.belowMarket) p.set("market", "below");
   if (q.sort && q.sort !== DEFAULT_SORT) p.set("sort", q.sort);
   if (q.page && q.page > 1) p.set("page", String(q.page));
   const s = p.toString();

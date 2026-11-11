@@ -1,6 +1,15 @@
-import { FUEL_TYPES, type FuelType, type SteeringSide, type Transmission } from "@repo/core";
+import {
+  FUEL_TYPES,
+  type BodyType,
+  type FuelType,
+  type OriginCountry,
+  type SteeringSide,
+  type Transmission,
+} from "@repo/core";
 
 export interface FilterValues {
+  /** Free text from the header search that did not resolve to a make/model. */
+  q: string | null;
   make: string | null;
   model: string | null;
   yearFrom: number | null;
@@ -12,9 +21,16 @@ export interface FilterValues {
   fuel: FuelType[];
   steering: SteeringSide | null;
   transmission: Transmission[];
+  body: BodyType[];
+  origin: OriginCountry[];
+  /** Only cars on their way ("В пути"). false = no filter, not "in stock only". */
+  inTransit: boolean;
+  /** Only listings our estimate puts below market. false = no filter. */
+  belowMarket: boolean;
 }
 
 export const EMPTY_FILTERS: FilterValues = {
+  q: null,
   make: null,
   model: null,
   yearFrom: null,
@@ -25,6 +41,10 @@ export const EMPTY_FILTERS: FilterValues = {
   fuel: [],
   steering: null,
   transmission: [],
+  body: [],
+  origin: [],
+  inTransit: false,
+  belowMarket: false,
 };
 
 /** "15 500" / "15500" → 15500; empty or non-numeric → null. Non-negative integers only. */
@@ -43,6 +63,7 @@ export function isInvalidRange(from: number | null, to: number | null): boolean 
 /** Number of filter groups the user has set (for the "Фильтры (3)" button). */
 export function countActiveFilters(f: FilterValues): number {
   return [
+    f.q !== null,
     f.make !== null,
     f.model !== null,
     f.yearFrom !== null || f.yearTo !== null,
@@ -51,6 +72,10 @@ export function countActiveFilters(f: FilterValues): number {
     f.fuel.length > 0,
     f.steering !== null,
     f.transmission.length > 0,
+    f.body.length > 0,
+    f.origin.length > 0,
+    f.inTransit,
+    f.belowMarket,
   ].filter(Boolean).length;
 }
 

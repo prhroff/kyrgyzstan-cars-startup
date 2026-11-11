@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EMPTY_FILTERS } from "@/lib/filters";
 import type { CarCardData } from "@/lib/listing-card";
 import { makeListings } from "@/dev/fixtures";
-import { makeOptions, modelId, rankSimilar, search, slugify } from "./search";
+import { makeCounts, makeOptions, modelId, rankSimilar, search, slugify } from "./search";
 
 const listings = makeListings(60, 3);
 
@@ -123,5 +123,54 @@ describe("rankSimilar", () => {
   it("respects the limit", () => {
     const many = Array.from({ length: 10 }, (_, i) => c(`m${i}`, "Camry", 20_000 + i));
     expect(rankSimilar(target, many, 4)).toHaveLength(4);
+  });
+});
+
+describe("makeCounts", () => {
+  it("counts per make, most first, ties alphabetical", () => {
+    const counts = makeCounts([
+      { ...at(0), make: "Kia" },
+      { ...at(1), make: "Toyota" },
+      { ...at(2), make: "Toyota" },
+      { ...at(3), make: "BYD" },
+    ]);
+    expect(counts).toEqual([
+      { id: "toyota", label: "Toyota", count: 2 },
+      { id: "byd", label: "BYD", count: 1 },
+      { id: "kia", label: "Kia", count: 1 },
+    ]);
+  });
+});
+
+describe("new filters", () => {
+  it("text, body, origin, in transit and below market", () => {
+    const base = at(0);
+    const l = {
+      ...base,
+      make: "Toyota",
+      model: "Camry",
+      trim: "2.5 Hybrid SE",
+      availability: "in_transit" as const,
+      market: "below" as const,
+      vehicle: { ...base.vehicle, bodyType: "sedan" as const, originCountry: "korea" as const },
+    };
+    const f = {
+      ...EMPTY_FILTERS,
+      q: "camry  HYBRID",
+      body: ["sedan" as const],
+      origin: ["korea" as const],
+      inTransit: true,
+      belowMarket: true,
+    };
+    expect(search([l], f, "fresh", 1).total).toBe(1);
+    expect(search([{ ...l, market: "fair" }], f, "fresh", 1).total).toBe(0);
+    expect(search([{ ...l, availability: "in_stock" }], f, "fresh", 1).total).toBe(0);
+    expect(search([l], { ...f, q: "rav4" }, "fresh", 1).total).toBe(0);
+  });
+
+  it("unknown body type never matches a body filter", () => {
+    const base = at(0);
+    const l = { ...base, vehicle: { ...base.vehicle, bodyType: null } };
+    expect(search([l], { ...EMPTY_FILTERS, body: ["sedan"] }, "fresh", 1).total).toBe(0);
   });
 });

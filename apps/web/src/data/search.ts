@@ -22,9 +22,22 @@ export function modelId(make: string, model: string): string {
   return `${slugify(make)}:${slugify(model)}`;
 }
 
+/** Lowercased, «ё» → «е», collapsed spaces: "Мерседес  Ё" and "мерседес е" compare equal. */
+export function normalizeText(s: string): string {
+  return s.toLowerCase().replaceAll("ё", "е").replace(/\s+/g, " ").trim();
+}
+
+function matchesText(l: CarCardData, q: string): boolean {
+  const hay = normalizeText([l.make, l.model, l.trim ?? ""].join(" "));
+  return normalizeText(q)
+    .split(" ")
+    .every((word) => hay.includes(word));
+}
+
 export function matchesFilters(l: CarCardData, f: FilterValues): boolean {
   const v = l.vehicle;
   return (
+    (f.q === null || matchesText(l, f.q)) &&
     (f.make === null || slugify(l.make) === f.make) &&
     (f.model === null || modelId(l.make, l.model) === f.model) &&
     (f.yearFrom === null || l.year >= f.yearFrom) &&
@@ -36,7 +49,11 @@ export function matchesFilters(l: CarCardData, f: FilterValues): boolean {
     (f.fuel.length === 0 || (v.fuelType !== null && f.fuel.includes(v.fuelType))) &&
     (f.transmission.length === 0 ||
       (v.transmission !== null && f.transmission.includes(v.transmission))) &&
-    (f.steering === null || v.steering === f.steering)
+    (f.steering === null || v.steering === f.steering) &&
+    (f.body.length === 0 || (v.bodyType !== null && f.body.includes(v.bodyType))) &&
+    (f.origin.length === 0 || (v.originCountry !== null && f.origin.includes(v.originCountry))) &&
+    (!f.inTransit || l.availability === "in_transit") &&
+    (!f.belowMarket || l.market === "below")
   );
 }
 
@@ -137,4 +154,22 @@ export function rankSimilar<T extends SimilarCandidate>(
   );
   const byDistance = (a: T, b: T) => distance(a) - distance(b) || a.id.localeCompare(b.id);
   return [...sameModel.sort(byDistance), ...sameSegment.sort(byDistance)].slice(0, limit);
+}
+
+export interface MakeCount {
+  id: string;
+  label: string;
+  count: number;
+}
+
+/** Listings per make, most listings first, then alphabetical (stable for equal counts). */
+export function makeCounts(listings: readonly CarCardData[]): MakeCount[] {
+  const counts = new Map<string, MakeCount>();
+  for (const l of listings) {
+    const id = slugify(l.make);
+    const c = counts.get(id) ?? { id, label: l.make, count: 0 };
+    c.count++;
+    counts.set(id, c);
+  }
+  return [...counts.values()].sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 }

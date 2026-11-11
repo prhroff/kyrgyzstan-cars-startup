@@ -26,7 +26,7 @@ export interface CarCardData extends Pick<
   city: string | null;
   vehicle: Pick<
     Vehicle,
-    "fuelType" | "transmission" | "steering" | "originCountry" | "engineVolumeCc"
+    "fuelType" | "transmission" | "steering" | "originCountry" | "engineVolumeCc" | "bodyType"
   >;
   photos: CarPhoto[];
   /** Only listings posted with us reach the site, so a seller is always known. */

@@ -19,6 +19,11 @@ describe("parseCatalogQuery", () => {
       fuel: "petrol,hybrid",
       steering: "left",
       transmission: ["automatic", "cvt"],
+      body: "sedan,crossover",
+      origin: "korea",
+      availability: "in_transit",
+      market: "below",
+      q: "camry hybrid",
       sort: "price_asc",
       page: "3",
     });
@@ -34,6 +39,11 @@ describe("parseCatalogQuery", () => {
         fuel: ["petrol", "hybrid"],
         steering: "left",
         transmission: ["automatic", "cvt"],
+        body: ["sedan", "crossover"],
+        origin: ["korea"],
+        inTransit: true,
+        belowMarket: true,
+        q: "camry hybrid",
       },
       sort: "price_asc",
       page: 3,
@@ -95,5 +105,11 @@ describe("pageItems", () => {
   it("keeps the start and end compact", () => {
     expect(pageItems(1, 10)).toEqual([1, 2, 3, 4, "gap", 10]);
     expect(pageItems(10, 10)).toEqual([1, "gap", 7, 8, 9, 10]);
+  });
+});
+
+describe("city=all", () => {
+  it("means the whole country", () => {
+    expect(parseCatalogQuery({ city: "all" }).filters.city).toBeNull();
   });
 });
