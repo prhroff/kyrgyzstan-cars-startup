@@ -1,0 +1,131 @@
+/*
+ * Design tokens — the ONLY source of colors, sizes, radii and shadows.
+ * Tailwind defaults are reset (`--*-*: initial`), so classes can only use what is defined here.
+ * Every token is a CSS variable on :root, so a dark theme later = overriding variables only.
+ */
+@theme {
+  /* ── Colors ─────────────────────────────────────────────── */
+  --color-*: initial;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  /* Surfaces (white base, warm neutrals) */
+  --color-surface: #ffffff;
+  --color-surface-subtle: #faf9f7;
+  --color-surface-muted: #f3f1ee;
+  --color-surface-strong: #e9e6e1;
+  --color-overlay: rgb(28 26 23 / 0.48);
+
+  /* Lines */
+  --color-line: #e7e4df;
+  --color-line-strong: #d3cec6;
+
+  /* Text */
+  --color-fg: #1c1a17;
+  --color-fg-muted: #5e5952;
+  --color-fg-subtle: #736d64;
+  --color-fg-disabled: #a8a299;
+  --color-fg-on-accent: #ffffff;
+
+  /* Accent — deep blue */
+  --color-accent: #1f44c2;
+  --color-accent-hover: #1a39a3;
+  --color-accent-active: #152f86;
+  --color-accent-subtle: #eef2fd;
+  --color-accent-line: #c3cff5;
+
+  /* Semantic */
+  --color-success: #17723a;
+  --color-success-subtle: #ebf6ef;
+  --color-warning: #a14a06;
+  --color-warning-subtle: #fdf3e6;
+  --color-danger: #c22a2a;
+  --color-danger-hover: #a52222;
+  --color-danger-subtle: #fdeeee;
+
+  /* Market position labels */
+  --color-market-below: #17723a;
+  --color-market-below-subtle: #ebf6ef;
+  --color-market-fair: #3d4f7a;
+  --color-market-fair-subtle: #eff1f6;
+  --color-market-above: #b0361b;
+  --color-market-above-subtle: #fcefeb;
+
+  /* Focus ring */
+  --color-focus: #1f44c2;
+
+  /* ── Typography ─────────────────────────────────────────── */
+  --font-*: initial;
+  --font-sans:
+    var(--font-onest), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --text-*: initial;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.625rem;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 2.375rem;
+
+  /* ── Spacing (4px grid; also drives w-/h-/gap-/inset-) ──── */
+  --spacing: initial;
+  --spacing-0: 0px;
+  --spacing-px: 1px;
+  --spacing-0.5: 0.125rem;
+  --spacing-1: 0.25rem;
+  --spacing-1.5: 0.375rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-3.5: 0.875rem;
+  --spacing-4: 1rem;
+  --spacing-5: 1.25rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-9: 2.25rem;
+  --spacing-10: 2.5rem;
+  --spacing-11: 2.75rem;
+  --spacing-12: 3rem;
+  --spacing-14: 3.5rem;
+  --spacing-16: 4rem;
+  --spacing-20: 5rem;
+  --spacing-24: 6rem;
+  --spacing-72: 18rem;
+  --spacing-80: 20rem;
+
+  /* ── Layout widths ──────────────────────────────────────── */
+  --container-*: initial;
+  --container-xs: 20rem;
+  --container-sm: 24rem;
+  --container-md: 28rem;
+  --container-prose: 40rem;
+  --container-content: 80rem;
+
+  /* ── Radii (6–8px; sm only for checkboxes) ──────────────── */
+  --radius-*: initial;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-full: 9999px;
+
+  /* ── Shadows (overlays only) ────────────────────────────── */
+  --shadow-*: initial;
+  --shadow-overlay: 0 4px 16px rgb(28 26 23 / 0.12);
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-shadow-*: initial;
+
+  /* ── Effects that are banned: no tokens = no classes ────── */
+  --blur-*: initial;
+
+  /* ── Motion ─────────────────────────────────────────────── */
+  --ease-*: initial;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}

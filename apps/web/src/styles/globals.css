@@ -1,0 +1,27 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+/*
+ * Interaction states. Driven by React Aria data attributes, so touch devices get no sticky hover.
+ * `data-demo="hover focus pressed"` on a wrapper forces the state for /dev/ui screenshots.
+ */
+@custom-variant ui-hover (&:where([data-hovered], [data-demo~="hover"], [data-demo~="hover"] *));
+@custom-variant ui-focus (&:where([data-focus-visible], [data-demo~="focus"], [data-demo~="focus"] *));
+/* Text fields: ring on any focus inside the field, not only keyboard focus. */
+@custom-variant ui-focus-within (&:where([data-focus-within], [data-demo~="focus"], [data-demo~="focus"] *));
+@custom-variant ui-pressed (&:where([data-pressed], [data-demo~="pressed"], [data-demo~="pressed"] *));
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-surface font-sans text-base text-fg antialiased;
+  }
+
+  ::selection {
+    @apply bg-accent-subtle text-fg;
+  }
+}

@@ -5,7 +5,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build", "db:generate"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "db:generate": {
       "inputs": ["prisma/**", "prisma.config.ts"],
@@ -22,6 +22,7 @@
       "dependsOn": ["^build", "db:generate"]
     },
     "dev": {
+      "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
     }
