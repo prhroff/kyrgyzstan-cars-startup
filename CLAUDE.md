@@ -8,7 +8,7 @@
 
 ## Структура
 
-- `apps/` — пусто (будут web, bot, workers)
+- `apps/web` — Next.js, UI-компоненты и витрина `/dev/ui` (правила — `apps/web/CLAUDE.md`); дальше bot, workers
 - `packages/config` — общие tsconfig / ESLint / Prettier
 - `packages/core` — доменные enum'ы, env, утилиты нормализации (phone, VIN, price, mileage)
 - `packages/db` — Prisma-схема, миграции, сид, слой записи объявлений
@@ -53,5 +53,5 @@ TEST_DATABASE_URL=... pnpm --filter @repo/db test   # + DB-тесты
 - Длинный вывод команд обрезай (`tail`/`grep`), логи целиком не выводи.
 - Задача больше 3 файлов — сначала короткий план.
 - Отвечай кратко: что сделано, что проверено, что требует решения. Без пересказа кода.
-- Агенты (`.claude/agents`): `test-runner` — после правок и перед коммитом; `reviewer` — diff перед коммитом; `parser-builder` — новый парсер источника; `data-qa` — после запуска парсера / при подозрении на мусор в БД.
+- Агенты (`.claude/agents`): `test-runner` — после правок и перед коммитом; `reviewer` — diff перед коммитом; `parser-builder` — новый парсер источника; `data-qa` — после запуска парсера / при подозрении на мусор в БД; `ui-builder` — компоненты и витрина `apps/web`.
 - Не добавляй в CLAUDE.md ничего без просьбы; новые решения — в `docs/decisions.md`.
