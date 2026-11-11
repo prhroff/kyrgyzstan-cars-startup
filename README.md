@@ -11,9 +11,11 @@ Telegram-каналов и сайтов дилеров. Ценность — д�
 Нужны Node 22+, Docker и pnpm (`corepack enable`).
 
 ```bash
-cp .env.example .env
 pnpm i && docker compose up -d && pnpm db:migrate && pnpm db:seed
 ```
+
+Без `.env` используются значения по умолчанию из `docker-compose.yml`. Чтобы их поменять, сделайте
+`cp .env.example .env`.
 
 Свой Postgres (локальный или Neon) вместо Docker: укажите `DATABASE_URL` в `.env` и пропустите
 `docker compose up -d`.
