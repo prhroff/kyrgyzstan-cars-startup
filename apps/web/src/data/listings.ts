@@ -1,7 +1,7 @@
 import { EMPTY_FILTERS, type FilterValues } from "@/lib/filters";
 import type { CarCardData } from "@/lib/listing-card";
 import { FIXTURE_LISTINGS, FIXTURE_NOW, FIXTURE_USD_KGS_RATE } from "./fixtures";
-import { makeOptions, search, slugify, type MakeOptionData } from "./search";
+import { makeOptions, rankSimilar, search, type MakeOptionData } from "./search";
 import type { ListingDetail, SearchResult, Sort } from "./types";
 
 /**
@@ -68,20 +68,11 @@ export function getLatestListings(limit: number): Promise<CarCardData[]> {
   return Promise.resolve(search(active().map(toCard), EMPTY_FILTERS, "fresh", 1, limit).items);
 }
 
-/** Same make first, then closest price; never the listing itself. */
-export function getSimilarListings(
-  listing: Pick<ListingDetail, "id" | "make" | "priceUsd">,
-  limit: number,
-): Promise<CarCardData[]> {
-  const make = slugify(listing.make);
-  const sameMake = (l: CarCardData) => Number(slugify(l.make) === make);
-  const distance = (l: CarCardData) => Math.abs(l.priceUsd - listing.priceUsd);
+/** Same model, then same segment within ±20% of the price (rankSimilar); never the listing itself. */
+export function getSimilarListings(listing: ListingDetail, limit: number): Promise<CarCardData[]> {
+  const candidate = (l: ListingDetail) => ({ ...l, bodyType: l.vehicle.bodyType });
   return Promise.resolve(
-    active()
-      .filter((l) => l.id !== listing.id)
-      .map(toCard)
-      .sort((a, b) => sameMake(b) - sameMake(a) || distance(a) - distance(b))
-      .slice(0, limit),
+    rankSimilar(candidate(listing), active().map(candidate), limit).map(toCard),
   );
 }
 

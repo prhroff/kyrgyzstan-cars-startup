@@ -102,3 +102,39 @@ export function makeOptions(listings: readonly CarCardData[]): MakeOptionData[] 
   const byLabel = (a: { label: string }, b: { label: string }) => a.label.localeCompare(b.label);
   return [...makes.values()].map((m) => ({ ...m, models: m.models.sort(byLabel) })).sort(byLabel);
 }
+
+/** Price window for "same segment" similar listings: ±20% of the listing's USD price. */
+export const SIMILAR_PRICE_TOLERANCE = 0.2;
+
+export interface SimilarCandidate {
+  id: string;
+  make: string;
+  model: string;
+  priceUsd: number;
+  /** The segment. Null = unknown segment: such listings match only by model. */
+  bodyType: string | null;
+}
+
+/**
+ * Similar listings: same model first (closest price first), then the same segment (body type)
+ * within ±20% of the price. Nothing else — an unrelated car is not "similar", so fewer is fine.
+ */
+export function rankSimilar<T extends SimilarCandidate>(
+  target: SimilarCandidate,
+  candidates: readonly T[],
+  limit: number,
+): T[] {
+  const model = modelId(target.make, target.model);
+  const distance = (c: T) => Math.abs(c.priceUsd - target.priceUsd);
+  const others = candidates.filter((c) => c.id !== target.id);
+  const sameModel = others.filter((c) => modelId(c.make, c.model) === model);
+  const sameSegment = others.filter(
+    (c) =>
+      modelId(c.make, c.model) !== model &&
+      target.bodyType !== null &&
+      c.bodyType === target.bodyType &&
+      distance(c) <= target.priceUsd * SIMILAR_PRICE_TOLERANCE,
+  );
+  const byDistance = (a: T, b: T) => distance(a) - distance(b) || a.id.localeCompare(b.id);
+  return [...sameModel.sort(byDistance), ...sameSegment.sort(byDistance)].slice(0, limit);
+}

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EMPTY_FILTERS } from "@/lib/filters";
 import type { CarCardData } from "@/lib/listing-card";
 import { makeListings } from "@/dev/fixtures";
-import { makeOptions, modelId, search, slugify } from "./search";
+import { makeOptions, modelId, rankSimilar, search, slugify } from "./search";
 
 const listings = makeListings(60, 3);
 
@@ -82,5 +82,46 @@ describe("makeOptions", () => {
       expect(new Set(ids).size).toBe(ids.length);
       for (const id of ids) expect(id.startsWith(`${o.id}:`)).toBe(true);
     }
+  });
+});
+
+describe("rankSimilar", () => {
+  const c = (id: string, model: string, priceUsd: number, bodyType: string | null = "sedan") => ({
+    id,
+    make: "Toyota",
+    model,
+    priceUsd,
+    bodyType,
+  });
+  const target = c("t", "Camry", 20_000);
+
+  it("same model first, then same segment within ±20%, closest price first", () => {
+    const ranked = rankSimilar(
+      target,
+      [
+        c("seg-far", "Corolla", 25_000),
+        c("seg-near", "Corolla", 19_000),
+        c("model-far", "Camry", 35_000),
+        c("model-near", "Camry", 21_000),
+        c("other-body", "RAV4", 20_000, "crossover"),
+        c("t", "Camry", 20_000),
+      ],
+      10,
+    );
+    expect(ranked.map((r) => r.id)).toEqual(["model-near", "model-far", "seg-near"]);
+  });
+
+  it("unknown segment of the target: only the same model", () => {
+    const ranked = rankSimilar(
+      { ...target, bodyType: null },
+      [c("seg", "Corolla", 20_000, null)],
+      4,
+    );
+    expect(ranked).toEqual([]);
+  });
+
+  it("respects the limit", () => {
+    const many = Array.from({ length: 10 }, (_, i) => c(`m${i}`, "Camry", 20_000 + i));
+    expect(rankSimilar(target, many, 4)).toHaveLength(4);
   });
 });
