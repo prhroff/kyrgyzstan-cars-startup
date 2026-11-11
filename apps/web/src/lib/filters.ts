@@ -1,4 +1,4 @@
-import type { FuelType, SteeringSide, Transmission } from "@repo/core";
+import { FUEL_TYPES, type FuelType, type SteeringSide, type Transmission } from "@repo/core";
 
 export interface FilterValues {
   make: string | null;
@@ -52,4 +52,47 @@ export function countActiveFilters(f: FilterValues): number {
     f.steering !== null,
     f.transmission.length > 0,
   ].filter(Boolean).length;
+}
+
+/**
+ * Fuel filter as buyers think about it: five groups. Hybrids open into subtypes; "Газ" covers both
+ * gas-only and petrol/gas cars. The URL and the query still use FuelType values.
+ */
+export const FUEL_GROUPS = [
+  { id: "petrol", label: "Бензин", types: ["petrol"] },
+  { id: "diesel", label: "Дизель", types: ["diesel"] },
+  { id: "gas", label: "Газ", types: ["lpg", "petrol_lpg"] },
+  { id: "hybrid", label: "Гибрид", types: ["hybrid", "plug_in_hybrid", "erev"] },
+  { id: "electric", label: "Электро", types: ["electric"] },
+] as const satisfies readonly { id: string; label: string; types: readonly FuelType[] }[];
+
+export type FuelGroup = (typeof FUEL_GROUPS)[number];
+
+/** Hybrid subtypes in plain words (shown inside "Гибрид"). */
+export const HYBRID_SUBTYPE_LABELS: Record<"hybrid" | "plug_in_hybrid" | "erev", string> = {
+  hybrid: "Обычный — без зарядки от розетки",
+  plug_in_hybrid: "Подключаемый — заряжается от розетки",
+  erev: "С увеличенным запасом хода (EREV)",
+};
+
+export type GroupState = "all" | "some" | "none";
+
+export function fuelGroupState(selected: readonly FuelType[], group: FuelGroup): GroupState {
+  const n = group.types.filter((t) => selected.includes(t)).length;
+  return n === 0 ? "none" : n === group.types.length ? "all" : "some";
+}
+
+/** Toggles a whole group: anything selected → clear it; nothing → select all. Keeps enum order. */
+export function toggleFuelGroup(selected: readonly FuelType[], group: FuelGroup): FuelType[] {
+  const types: readonly FuelType[] = group.types;
+  const next =
+    fuelGroupState(selected, group) === "none"
+      ? [...selected, ...types]
+      : selected.filter((t) => !types.includes(t));
+  return FUEL_TYPES.filter((t) => next.includes(t));
+}
+
+export function toggleFuelType(selected: readonly FuelType[], type: FuelType): FuelType[] {
+  const next = selected.includes(type) ? selected.filter((t) => t !== type) : [...selected, type];
+  return FUEL_TYPES.filter((t) => next.includes(t));
 }

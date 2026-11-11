@@ -1,29 +1,44 @@
 "use client";
 
 import {
-  FUEL_TYPES,
   STEERING_SIDES,
   TRANSMISSIONS,
   type FuelType,
   type SteeringSide,
   type Transmission,
 } from "@repo/core";
-import { RotateCcw, SlidersHorizontal, X } from "lucide-react";
-import { Dialog, DialogTrigger, Heading, Modal, ModalOverlay } from "react-aria-components";
+import { ChevronDown, ChevronUp, RotateCcw, SlidersHorizontal, X } from "lucide-react";
+import { useId, useState } from "react";
+import {
+  Button as AriaButton,
+  Dialog,
+  DialogTrigger,
+  Disclosure,
+  DisclosurePanel,
+  Heading,
+  Modal,
+  ModalOverlay,
+} from "react-aria-components";
 import { cx } from "@/lib/cx";
 import {
   countActiveFilters,
   EMPTY_FILTERS,
+  FUEL_GROUPS,
+  fuelGroupState,
+  HYBRID_SUBTYPE_LABELS,
+  toggleFuelGroup,
+  toggleFuelType,
   isInvalidRange,
   parseIntegerInput,
   type FilterValues,
 } from "@/lib/filters";
 import { formatNumber, pluralRu } from "@/lib/format";
-import { FUEL_LABELS, STEERING_LABELS, TRANSMISSION_LABELS } from "@/lib/labels";
+import { STEERING_LABELS, TRANSMISSION_LABELS } from "@/lib/labels";
 import { Button } from "./Button";
 import { Checkbox, CheckboxGroup } from "./Checkbox";
 import { Input } from "./Input";
 import { Select, type SelectOption } from "./Select";
+import { focusRing } from "./styles";
 
 export interface MakeOption extends SelectOption {
   models: SelectOption[];
@@ -157,47 +172,136 @@ export function FilterFields({
         }}
       />
 
-      <CheckboxGroup
-        label="Топливо"
+      <FuelFilter
         value={value.fuel}
-        onChange={(v) => {
-          set({ fuel: FUEL_TYPES.filter((f) => v.includes(f)) });
-        }}
-      >
-        {FUEL_TYPES.map((f: FuelType) => (
-          <Checkbox key={f} value={f}>
-            {FUEL_LABELS[f]}
-          </Checkbox>
-        ))}
-      </CheckboxGroup>
-
-      <Select
-        label="Руль"
-        placeholder="Любой"
-        options={[
-          { id: ANY, label: "Любой" },
-          ...STEERING_SIDES.map((s: SteeringSide) => ({ id: s, label: STEERING_LABELS[s] })),
-        ]}
-        value={value.steering ?? ANY}
-        onChange={(key) => {
-          set({ steering: STEERING_SIDES.find((s) => s === key) ?? null });
+        onChange={(fuel) => {
+          set({ fuel });
         }}
       />
 
-      <CheckboxGroup
-        label="Коробка передач"
-        value={value.transmission}
-        onChange={(v) => {
-          set({ transmission: TRANSMISSIONS.filter((t) => v.includes(t)) });
-        }}
+      <Disclosure
+        defaultExpanded={value.steering !== null || value.transmission.length > 0}
+        className="group/more flex flex-col gap-4 border-t border-line pt-4"
       >
-        {TRANSMISSIONS.map((t: Transmission) => (
-          <Checkbox key={t} value={t}>
-            {TRANSMISSION_LABELS[t]}
-          </Checkbox>
-        ))}
-      </CheckboxGroup>
+        <Heading className="flex">
+          <AriaButton
+            slot="trigger"
+            className={cx(
+              "flex h-11 w-full cursor-pointer items-center justify-between rounded-md text-base font-medium text-fg ui-hover:text-accent",
+              focusRing,
+            )}
+          >
+            Ещё фильтры
+            <ChevronDown
+              aria-hidden
+              className="size-5 transition-transform group-data-expanded/more:rotate-180"
+            />
+          </AriaButton>
+        </Heading>
+        <DisclosurePanel className="flex flex-col gap-5">
+          <Select
+            label="Руль"
+            placeholder="Любой"
+            options={[
+              { id: ANY, label: "Любой" },
+              ...STEERING_SIDES.map((s: SteeringSide) => ({ id: s, label: STEERING_LABELS[s] })),
+            ]}
+            value={value.steering ?? ANY}
+            onChange={(key) => {
+              set({ steering: STEERING_SIDES.find((s) => s === key) ?? null });
+            }}
+          />
+
+          <CheckboxGroup
+            label="Коробка передач"
+            value={value.transmission}
+            onChange={(v) => {
+              set({ transmission: TRANSMISSIONS.filter((t) => v.includes(t)) });
+            }}
+          >
+            {TRANSMISSIONS.map((t: Transmission) => (
+              <Checkbox key={t} value={t}>
+                {TRANSMISSION_LABELS[t]}
+              </Checkbox>
+            ))}
+          </CheckboxGroup>
+        </DisclosurePanel>
+      </Disclosure>
     </div>
+  );
+}
+
+/** Five groups; "Гибрид" opens into subtypes (plain names). Group checkbox is mixed when partial. */
+function FuelFilter({
+  value,
+  onChange,
+}: {
+  value: FuelType[];
+  onChange: (fuel: FuelType[]) => void;
+}) {
+  const subtypesId = useId();
+  const hybrid = FUEL_GROUPS.find((g) => g.id === "hybrid");
+  const [hybridOpen, setHybridOpen] = useState(
+    hybrid !== undefined && fuelGroupState(value, hybrid) === "some",
+  );
+  return (
+    <fieldset className="flex flex-col gap-1">
+      <legend className="mb-1 text-sm font-medium text-fg">Топливо</legend>
+      {FUEL_GROUPS.map((group) => {
+        const state = fuelGroupState(value, group);
+        const checkbox = (
+          <Checkbox
+            isSelected={state === "all"}
+            isIndeterminate={state === "some"}
+            onChange={() => {
+              onChange(toggleFuelGroup(value, group));
+            }}
+          >
+            {group.label}
+          </Checkbox>
+        );
+        if (group.id !== "hybrid") return <div key={group.id}>{checkbox}</div>;
+        return (
+          <div key={group.id} className="flex flex-col">
+            <div className="flex items-center justify-between gap-2">
+              {checkbox}
+              <Button
+                variant="ghost"
+                size="md"
+                iconTrailing={hybridOpen ? ChevronUp : ChevronDown}
+                aria-expanded={hybridOpen}
+                aria-controls={subtypesId}
+                onPress={() => {
+                  setHybridOpen((o) => !o);
+                }}
+              >
+                Тип гибрида
+              </Button>
+            </div>
+            {hybridOpen && (
+              <div
+                id={subtypesId}
+                role="group"
+                aria-label="Тип гибрида"
+                className="flex flex-col border-l border-line pl-4"
+              >
+                {group.types.map((t) => (
+                  <Checkbox
+                    key={t}
+                    isSelected={value.includes(t)}
+                    onChange={() => {
+                      onChange(toggleFuelType(value, t));
+                    }}
+                  >
+                    {HYBRID_SUBTYPE_LABELS[t]}
+                  </Checkbox>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </fieldset>
   );
 }
 

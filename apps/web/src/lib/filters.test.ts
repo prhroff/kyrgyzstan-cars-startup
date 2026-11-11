@@ -1,5 +1,16 @@
+import { FUEL_TYPES } from "@repo/core";
 import { describe, expect, it } from "vitest";
-import { countActiveFilters, EMPTY_FILTERS, isInvalidRange, parseIntegerInput } from "./filters";
+import {
+  countActiveFilters,
+  EMPTY_FILTERS,
+  FUEL_GROUPS,
+  fuelGroupState,
+  HYBRID_SUBTYPE_LABELS,
+  isInvalidRange,
+  parseIntegerInput,
+  toggleFuelGroup,
+  toggleFuelType,
+} from "./filters";
 
 describe("parseIntegerInput", () => {
   it("parses digits with spaces and NBSP", () => {
@@ -44,5 +55,36 @@ describe("countActiveFilters", () => {
         fuel: ["petrol", "hybrid"],
       }),
     ).toBe(3);
+  });
+});
+
+describe("fuel groups", () => {
+  const hybrid = FUEL_GROUPS.find((g) => g.id === "hybrid");
+  const gas = FUEL_GROUPS.find((g) => g.id === "gas");
+  if (!hybrid || !gas) throw new Error("groups");
+
+  it("cover every fuel type exactly once", () => {
+    const all = FUEL_GROUPS.flatMap((g) => [...g.types]);
+    expect([...all].sort()).toEqual([...FUEL_TYPES].sort());
+  });
+
+  it("group state: none / some / all", () => {
+    expect(fuelGroupState([], hybrid)).toBe("none");
+    expect(fuelGroupState(["erev"], hybrid)).toBe("some");
+    expect(fuelGroupState(["hybrid", "plug_in_hybrid", "erev"], hybrid)).toBe("all");
+  });
+
+  it("toggling a group selects all of it, or clears a partial selection", () => {
+    expect(toggleFuelGroup(["petrol"], gas)).toEqual(["petrol", "lpg", "petrol_lpg"]);
+    expect(toggleFuelGroup(["petrol", "erev"], hybrid)).toEqual(["petrol"]);
+  });
+
+  it("toggling one subtype keeps enum order", () => {
+    expect(toggleFuelType(["erev"], "hybrid")).toEqual(["hybrid", "erev"]);
+    expect(toggleFuelType(["hybrid", "erev"], "hybrid")).toEqual(["erev"]);
+  });
+
+  it("every hybrid subtype has a plain label", () => {
+    for (const t of hybrid.types) expect(HYBRID_SUBTYPE_LABELS[t]).toBeTruthy();
   });
 });
