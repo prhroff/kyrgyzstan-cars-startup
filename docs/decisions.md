@@ -65,3 +65,8 @@ Neon работает на 18; одна мажорная версия во вс�
 
 **2026-11-11 — pnpm 12: allowBuilds для prisma, @prisma/engines, esbuild.**
 pnpm 12 по умолчанию блокирует install-скрипты зависимостей и падает с ошибкой.
+
+**2026-11-11 — Проект и dev-кэши только на диске E; на C ничего не создаём.**
+Диск C переполнен, прав администратора нет. Проект — `E:\startup-project`, кэши — `E:\dev\.cache`:
+pnpm store/cache/state (`pnpm config --location=global`), `npm_config_cache`, `COREPACK_HOME`,
+`PLAYWRIGHT_BROWSERS_PATH` (пользовательские переменные через `setx`). Бэкап истории — `E:\dev\backup`.
