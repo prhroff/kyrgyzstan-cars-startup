@@ -4,6 +4,7 @@ import { ClosedListing } from "@/components/listing/ClosedListing";
 import { ListingGrid } from "@/components/listing/ListingGrid";
 import { ListingSpecs } from "@/components/listing/ListingSpecs";
 import { ListingSummary, listingTitle } from "@/components/listing/ListingSummary";
+import { RecordView } from "@/components/listing/RecordView";
 import { ContactActions } from "@/components/ui/ContactActions";
 import { Gallery } from "@/components/ui/Gallery";
 import { PriceHistory } from "@/components/ui/PriceHistory";
@@ -41,7 +42,7 @@ export default async function ListingPage({ params }: Props) {
 
   const similarSection = similar.length > 0 && (
     <section aria-labelledby="similar-heading" className="flex flex-col gap-4">
-      <h2 id="similar-heading" className="text-xl font-semibold text-fg">
+      <h2 id="similar-heading" className="text-2xl font-semibold tracking-tight text-fg">
         Похожие объявления
       </h2>
       <ListingGrid listings={similar} usdKgsRate={rate} now={now} />
@@ -66,7 +67,8 @@ export default async function ListingPage({ params }: Props) {
           listing={listing}
           usdKgsRate={rate}
           now={now}
-          className="lg:sticky lg:top-6 lg:col-start-3 lg:row-span-5 lg:row-start-1 lg:self-start"
+          // Floating card on desktop (docs/design/direction.md: shadow only on floating elements).
+          className="lg:sticky lg:top-6 lg:col-start-3 lg:row-span-5 lg:row-start-1 lg:self-start lg:rounded-xl lg:bg-surface lg:p-6 lg:shadow-raised"
         />
         <ListingSpecs listing={listing} className="lg:col-span-2" />
         <TrustPanel items={buildTrustItems(listing, now)} className="lg:col-span-2" />
@@ -74,7 +76,7 @@ export default async function ListingPage({ params }: Props) {
           aria-labelledby="description-heading"
           className="flex flex-col gap-3 lg:col-span-2"
         >
-          <h2 id="description-heading" className="text-lg font-semibold text-fg">
+          <h2 id="description-heading" className="text-xl font-semibold tracking-tight text-fg">
             Описание
           </h2>
           {listing.description ? (
@@ -89,8 +91,9 @@ export default async function ListingPage({ params }: Props) {
       </div>
 
       {similarSection}
+      <RecordView id={listing.id} />
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface p-3 lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 rounded-t-xl bg-surface p-3 shadow-raised lg:hidden">
         <ContactActions contacts={listing.contacts} layout="bar" />
       </div>
     </main>

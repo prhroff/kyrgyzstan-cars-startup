@@ -33,19 +33,19 @@ export function ClosedListing({ listing, now }: { listing: ListingDetail; now: D
   const { title, detail } = closedText(listing, now);
   const Icon = listing.status === "sold" ? CircleCheck : Archive;
   return (
-    <section className="flex flex-col gap-5 rounded-lg border border-line p-4 sm:flex-row sm:p-5">
+    <section className="flex flex-col gap-5 rounded-xl bg-surface-muted p-4 sm:flex-row sm:p-6">
       <CarPhoto
         photo={listing.photos[0]}
         alt={listingTitle(listing)}
         sizes="(min-width: 640px) 288px, 100vw"
-        className="rounded-md sm:w-72 sm:shrink-0"
+        className="rounded-lg sm:w-72 sm:shrink-0"
       />
       <div className="flex min-w-0 flex-col gap-3">
         <div className="flex items-center gap-2 text-fg-muted">
           <Icon aria-hidden className="size-5 shrink-0" />
           <p className="text-base font-medium text-fg">{title}</p>
         </div>
-        <h1 className="text-2xl font-semibold text-fg">{listingTitle(listing)}</h1>
+        <h1 className="text-3xl font-semibold tracking-tight text-fg">{listingTitle(listing)}</h1>
         <p className="text-sm text-fg-muted">
           Последняя цена: {formatPrice(listing.priceAmount, listing.currency)}
         </p>

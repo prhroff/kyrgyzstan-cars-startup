@@ -24,7 +24,7 @@ export function PriceHistory({ points, now, className }: PriceHistoryProps) {
   const changed = priceChanges(points) > 0;
   return (
     <section aria-labelledby={headingId} className={cx("flex flex-col gap-3", className)}>
-      <h2 id={headingId} className="text-lg font-semibold text-fg">
+      <h2 id={headingId} className="text-xl font-semibold tracking-tight text-fg">
         История цены
       </h2>
       {!changed ? (

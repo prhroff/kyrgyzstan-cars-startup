@@ -62,7 +62,7 @@ export function PriceTag({
         <span
           className={cx(
             "font-semibold whitespace-nowrap text-fg tabular-nums",
-            size === "lg" ? "text-2xl" : "text-xl",
+            size === "lg" ? "text-3xl tracking-tight" : "text-xl",
           )}
         >
           {formatPrice(amount, currency)}

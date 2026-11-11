@@ -27,7 +27,7 @@ export function EmptyState({
         <Icon aria-hidden className="size-6 text-fg-muted" />
       </span>
       <div className="flex max-w-sm flex-col gap-1">
-        <Heading className="text-lg font-semibold text-fg">{title}</Heading>
+        <Heading className="text-xl font-semibold tracking-tight text-fg">{title}</Heading>
         {description && <p className="text-sm text-fg-muted">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap justify-center gap-3">{actions}</div>}

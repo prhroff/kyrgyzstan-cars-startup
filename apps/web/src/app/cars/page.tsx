@@ -7,6 +7,7 @@ import { LinkButton } from "@/components/ui/LinkButton";
 import { Pagination } from "@/components/ui/Pagination";
 import { getCities, getMakeOptions, getNow, getUsdKgsRate, searchListings } from "@/data/listings";
 import { catalogQueryString, parseCatalogQuery, type RawSearchParams } from "@/lib/search-params";
+import { formatNumber } from "@/lib/format";
 import { catalogMeta } from "@/lib/seo";
 
 interface Props {
@@ -29,7 +30,8 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 }
 
 export default async function CatalogPage({ searchParams }: Props) {
-  const query = parseCatalogQuery(await searchParams);
+  const raw = await searchParams;
+  const query = parseCatalogQuery(raw);
   const [result, makes, cities, now, rate] = await Promise.all([
     searchListings(query.filters, query.sort, query.page),
     getMakeOptions(),
@@ -38,12 +40,22 @@ export default async function CatalogPage({ searchParams }: Props) {
     getUsdKgsRate(),
   ]);
   const meta = catalogMeta(query.filters, result.total, makes);
+  // "Все марки" (home) links with ?pick=make: open the make picker. Not a filter, not kept in links.
+  const pickMake = raw.pick === "make";
   const baseHref = `/cars${catalogQueryString({ filters: query.filters, sort: query.sort })}`;
 
   return (
-    <main className="mx-auto flex w-full max-w-content flex-col gap-6 px-4 py-6 lg:py-8">
-      <h1 className="text-2xl font-semibold text-fg">{meta.h1}</h1>
-      <CatalogControls query={query} total={result.total} makes={makes} cities={cities}>
+    <main className="mx-auto flex w-full max-w-content flex-col gap-6 px-4 pt-6 pb-10 lg:gap-8 lg:pt-8">
+      <h1 className="text-3xl font-semibold tracking-tight text-fg lg:text-5xl">
+        {meta.h1} <span className="text-fg-subtle tabular-nums">{formatNumber(result.total)}</span>
+      </h1>
+      <CatalogControls
+        query={query}
+        total={result.total}
+        makes={makes}
+        cities={cities}
+        autoOpenMake={pickMake}
+      >
         {result.items.length > 0 ? (
           <>
             <ListingGrid

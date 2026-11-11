@@ -27,7 +27,9 @@ export function ListingSummary({ listing, usdKgsRate, now, className }: ListingS
   return (
     <div className={cx("flex flex-col gap-5", className)}>
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold text-fg">{listingTitle(listing)}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-fg lg:text-3xl">
+          {listingTitle(listing)}
+        </h1>
         {listing.trim && <p className="text-base text-fg-muted">{listing.trim}</p>}
         <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-fg-subtle">
           {listing.city && (

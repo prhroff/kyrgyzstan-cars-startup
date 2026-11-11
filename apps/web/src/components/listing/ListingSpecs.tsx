@@ -54,7 +54,7 @@ export function ListingSpecs({
   return (
     <section aria-labelledby="specs-heading" className={cx("flex flex-col gap-3", className)}>
       <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-        <h2 id="specs-heading" className="text-lg font-semibold text-fg">
+        <h2 id="specs-heading" className="text-xl font-semibold tracking-tight text-fg">
           Характеристики
         </h2>
         <p className="text-sm text-fg-subtle">Со слов продавца</p>

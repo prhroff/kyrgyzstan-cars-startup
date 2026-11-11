@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  BODY_TYPES,
+  ORIGIN_COUNTRIES,
   STEERING_SIDES,
   TRANSMISSIONS,
   type FuelType,
@@ -8,7 +10,7 @@ import {
   type Transmission,
 } from "@repo/core";
 import { ChevronDown, ChevronUp, RotateCcw, SlidersHorizontal, X } from "lucide-react";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import {
   Button as AriaButton,
   Dialog,
@@ -18,6 +20,8 @@ import {
   Heading,
   Modal,
   ModalOverlay,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "react-aria-components";
 import { cx } from "@/lib/cx";
 import {
@@ -33,7 +37,8 @@ import {
   type FilterValues,
 } from "@/lib/filters";
 import { formatNumber, pluralRu } from "@/lib/format";
-import { STEERING_LABELS, TRANSMISSION_LABELS } from "@/lib/labels";
+import { ORIGIN_FILTER_LABELS } from "@/lib/filter-chips";
+import { BODY_LABELS, STEERING_LABELS, TRANSMISSION_LABELS } from "@/lib/labels";
 import { Button } from "./Button";
 import { Checkbox, CheckboxGroup } from "./Checkbox";
 import { Input } from "./Input";
@@ -51,6 +56,8 @@ export interface FilterPanelProps {
   cities: readonly string[];
   /** Matching listings for the current filters (shown on the mobile "apply" button). */
   resultCount: number;
+  /** Open the make picker on arrival ("Все марки" on the home page). */
+  autoOpenMake?: boolean;
   className?: string;
 }
 
@@ -70,6 +77,7 @@ export function FilterFields({
   onChange,
   makes,
   cities,
+  autoOpenMake = false,
 }: Omit<FilterPanelProps, "resultCount" | "className">) {
   const set = (patch: Partial<FilterValues>) => {
     onChange({ ...value, ...patch });
@@ -80,8 +88,17 @@ export function FilterFields({
 
   return (
     <div className="flex flex-col gap-5">
+      <Input
+        label="Поиск по названию"
+        placeholder="Например, Camry Hybrid"
+        value={value.q ?? ""}
+        onChange={(s) => {
+          set({ q: s.trim() === "" ? null : s });
+        }}
+      />
       <Select
         label="Марка"
+        defaultOpen={autoOpenMake}
         placeholder="Любая"
         options={[{ id: ANY, label: "Любая" }, ...makes]}
         value={value.make ?? ANY}
@@ -162,6 +179,15 @@ export function FilterFields({
         )}
       </fieldset>
 
+      <PillGroup
+        label="Кузов"
+        options={BODY_TYPES.map((b) => ({ id: b, label: BODY_LABELS[b] }))}
+        value={value.body}
+        onChange={(ids) => {
+          set({ body: BODY_TYPES.filter((b) => ids.includes(b)) });
+        }}
+      />
+
       <Select
         label="Город"
         placeholder="Любой"
@@ -180,7 +206,13 @@ export function FilterFields({
       />
 
       <Disclosure
-        defaultExpanded={value.steering !== null || value.transmission.length > 0}
+        defaultExpanded={
+          value.steering !== null ||
+          value.transmission.length > 0 ||
+          value.origin.length > 0 ||
+          value.inTransit ||
+          value.belowMarket
+        }
         className="group/more flex flex-col gap-4 border-t border-line pt-4"
       >
         <Heading className="flex">
@@ -199,6 +231,33 @@ export function FilterFields({
           </AriaButton>
         </Heading>
         <DisclosurePanel className="flex flex-col gap-5">
+          <PillGroup
+            label="Откуда машина"
+            options={ORIGIN_COUNTRIES.map((o) => ({ id: o, label: ORIGIN_FILTER_LABELS[o] }))}
+            value={value.origin}
+            onChange={(ids) => {
+              set({ origin: ORIGIN_COUNTRIES.filter((o) => ids.includes(o)) });
+            }}
+          />
+          <fieldset className="flex flex-col">
+            <legend className="mb-1 text-sm font-medium text-fg">Наличие и цена</legend>
+            <Checkbox
+              isSelected={value.inTransit}
+              onChange={(inTransit) => {
+                set({ inTransit });
+              }}
+            >
+              В пути
+            </Checkbox>
+            <Checkbox
+              isSelected={value.belowMarket}
+              onChange={(belowMarket) => {
+                set({ belowMarket });
+              }}
+            >
+              Ниже рынка
+            </Checkbox>
+          </fieldset>
           <Select
             label="Руль"
             placeholder="Любой"
@@ -227,6 +286,51 @@ export function FilterFields({
           </CheckboxGroup>
         </DisclosurePanel>
       </Disclosure>
+    </div>
+  );
+}
+
+/** Multi-select pills (body type, origin). Selected = accent, per docs/design/direction.md. */
+function PillGroup({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: readonly { id: string; label: string }[];
+  value: readonly string[];
+  onChange: (ids: string[]) => void;
+}) {
+  const labelId = useId();
+  return (
+    <div className="flex flex-col gap-2">
+      <span id={labelId} className="text-sm font-medium text-fg">
+        {label}
+      </span>
+      <ToggleButtonGroup
+        aria-labelledby={labelId}
+        selectionMode="multiple"
+        selectedKeys={new Set(value)}
+        onSelectionChange={(keys) => {
+          onChange([...keys].map(String));
+        }}
+        className="flex flex-wrap gap-2"
+      >
+        {options.map((o) => (
+          <ToggleButton
+            key={o.id}
+            id={o.id}
+            className={cx(
+              "inline-flex h-11 cursor-pointer items-center rounded-full bg-surface-muted px-4 text-sm text-fg transition-colors ui-hover:bg-surface-strong",
+              "data-selected:bg-accent data-selected:text-fg-on-accent",
+              focusRing,
+            )}
+          >
+            {o.label}
+          </ToggleButton>
+        ))}
+      </ToggleButtonGroup>
     </div>
   );
 }
@@ -357,18 +461,50 @@ export function FilterPanel({
   makes,
   cities,
   resultCount,
+  autoOpenMake = false,
   className,
 }: FilterPanelProps) {
   const active = countActiveFilters(value);
   const reset = () => {
     onChange(EMPTY_FILTERS);
   };
-  const fields = <FilterFields value={value} onChange={onChange} makes={makes} cities={cities} />;
+  // Which layout is visible decides where the make picker opens; known only after mount.
+  const [openOn, setOpenOn] = useState<"desktop" | "mobile" | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  useEffect(() => {
+    if (!autoOpenMake) return;
+    // After the first frame: the layout (and so the visible picker) is known only in the browser.
+    const frame = requestAnimationFrame(() => {
+      const desktop = window.matchMedia("(min-width: 1024px)").matches;
+      setOpenOn(desktop ? "desktop" : "mobile");
+      if (!desktop) setSheetOpen(true);
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+    };
+  }, [autoOpenMake]);
+  const fields = (open: boolean) => (
+    <FilterFields
+      key={open ? "open" : "closed"}
+      value={value}
+      onChange={onChange}
+      makes={makes}
+      cities={cities}
+      autoOpenMake={open}
+    />
+  );
 
   return (
     <div className={className}>
       <div className="lg:hidden">
-        <DialogTrigger>
+        <DialogTrigger
+          isOpen={sheetOpen}
+          onOpenChange={(open) => {
+            setSheetOpen(open);
+            // Auto-open the make picker only on the first opening (arrival from "Все марки").
+            if (!open) setOpenOn(null);
+          }}
+        >
           <Button variant="secondary" iconLeading={SlidersHorizontal}>
             Фильтры
             {active > 0 && (
@@ -388,7 +524,7 @@ export function FilterPanel({
                     onReset={reset}
                     resultCount={resultCount}
                   >
-                    {fields}
+                    {fields(openOn === "mobile")}
                   </FilterSheetFrame>
                 )}
               </Dialog>
@@ -406,7 +542,7 @@ export function FilterPanel({
             </Button>
           )}
         </div>
-        {fields}
+        {fields(openOn === "desktop")}
       </aside>
     </div>
   );
