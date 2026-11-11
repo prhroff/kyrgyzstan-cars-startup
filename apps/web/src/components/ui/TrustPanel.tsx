@@ -27,9 +27,9 @@ export function TrustPanel({ items, headingLevel = 2, className }: TrustPanelPro
   return (
     <section
       aria-labelledby={headingId}
-      className={cx("flex flex-col gap-4 rounded-lg border border-line p-4 sm:p-5", className)}
+      className={cx("flex flex-col gap-4 rounded-lg bg-surface-muted p-5 sm:p-6", className)}
     >
-      <Heading id={headingId} className="text-lg font-semibold text-fg">
+      <Heading id={headingId} className="text-xl font-semibold tracking-tight text-fg">
         Что известно об этой машине
       </Heading>
       <ul className="flex flex-col divide-y divide-line">

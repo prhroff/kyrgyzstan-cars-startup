@@ -372,14 +372,14 @@ export function FilterPanel({
           <Button variant="secondary" iconLeading={SlidersHorizontal}>
             Фильтры
             {active > 0 && (
-              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs text-fg-on-accent">
+              <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-xs text-fg-on-accent">
                 {active}
                 <span className="sr-only"> активно</span>
               </span>
             )}
           </Button>
           <ModalOverlay isDismissable className="fixed inset-0 z-50 bg-overlay">
-            <Modal className="fixed inset-x-0 top-12 bottom-0 flex flex-col overflow-hidden rounded-t-lg bg-surface outline-none">
+            <Modal className="fixed inset-x-0 top-12 bottom-0 flex flex-col overflow-hidden rounded-t-xl bg-surface shadow-overlay outline-none">
               <Dialog aria-label="Фильтры" className="flex min-h-0 flex-1 flex-col outline-none">
                 {({ close }) => (
                   <FilterSheetFrame

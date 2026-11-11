@@ -21,12 +21,14 @@ export interface ButtonProps extends Omit<AriaButtonProps, "className" | "childr
 }
 
 const VARIANTS: Record<ButtonVariant, string> = {
+  // Near-black: the interface is monochrome, color comes from photos (docs/design/direction.md).
   primary:
-    "bg-accent text-fg-on-accent ui-hover:bg-accent-hover ui-pressed:bg-accent-active " +
+    "bg-primary text-fg-on-accent ui-hover:bg-primary-hover ui-pressed:bg-primary-active " +
     "data-disabled:bg-surface-strong data-disabled:text-fg-disabled",
+  // Light-gray pill without a border.
   secondary:
-    "border border-line-strong bg-surface text-fg ui-hover:bg-surface-subtle ui-pressed:bg-surface-muted " +
-    "data-disabled:border-line data-disabled:bg-surface data-disabled:text-fg-disabled",
+    "bg-surface-muted text-fg ui-hover:bg-surface-strong ui-pressed:bg-surface-strong " +
+    "data-disabled:bg-surface-subtle data-disabled:text-fg-disabled",
   ghost:
     "bg-transparent text-fg ui-hover:bg-surface-muted ui-pressed:bg-surface-strong data-disabled:text-fg-disabled",
   danger:
@@ -54,7 +56,7 @@ export function buttonStyles({
 }): string {
   const s = SIZES[size];
   return cx(
-    "inline-flex shrink-0 cursor-pointer items-center justify-center rounded-md font-medium whitespace-nowrap transition-colors select-none",
+    "inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full font-medium whitespace-nowrap transition-colors select-none",
     "data-disabled:cursor-not-allowed data-pending:cursor-wait",
     focusRing,
     VARIANTS[variant],

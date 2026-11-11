@@ -5,7 +5,7 @@ export function Skeleton({ className, square = false }: { className?: string; sq
   return (
     <div
       aria-hidden
-      className={cx("animate-pulse bg-surface-muted", !square && "rounded-md", className)}
+      className={cx("animate-pulse bg-surface-muted", !square && "rounded-sm", className)}
     />
   );
 }
@@ -30,12 +30,9 @@ export function LoadingRegion({
 
 export function CarCardSkeleton() {
   return (
-    <div
-      aria-hidden
-      className="flex flex-col overflow-hidden rounded-lg border border-line bg-surface"
-    >
-      <Skeleton square className="aspect-4/3 w-full" />
-      <div className="flex flex-col gap-3 p-4">
+    <div aria-hidden className="flex flex-col gap-3">
+      <Skeleton square className="aspect-4/3 w-full rounded-lg" />
+      <div className="flex flex-col gap-3">
         <Skeleton className="h-5 w-3/4" />
         <Skeleton className="h-4 w-1/2" />
         <div className="flex gap-2">

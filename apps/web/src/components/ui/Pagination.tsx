@@ -25,7 +25,7 @@ export function pageHref(baseHref: string, page: number): string {
 }
 
 const cell =
-  "inline-flex h-11 min-w-11 items-center justify-center rounded-md px-3 text-base tabular-nums transition-colors";
+  "inline-flex h-11 min-w-11 items-center justify-center rounded-full px-3 text-base tabular-nums transition-colors";
 const link = cx(cell, focusRing, "text-fg ui-hover:bg-surface-muted ui-pressed:bg-surface-strong");
 
 export function Pagination({ page, pageCount, baseHref, className }: PaginationProps) {

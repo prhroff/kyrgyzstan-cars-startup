@@ -39,6 +39,8 @@ const COLOR_SWATCHES: { name: string; className: string }[] = [
   { name: "fg", className: "bg-fg" },
   { name: "fg-muted", className: "bg-fg-muted" },
   { name: "fg-subtle", className: "bg-fg-subtle" },
+  { name: "primary", className: "bg-primary" },
+  { name: "primary-hover", className: "bg-primary-hover" },
   { name: "accent", className: "bg-accent" },
   { name: "accent-hover", className: "bg-accent-hover" },
   { name: "accent-subtle", className: "bg-accent-subtle" },
@@ -50,8 +52,19 @@ const COLOR_SWATCHES: { name: string; className: string }[] = [
   { name: "market-above", className: "bg-market-above" },
 ];
 
+const RADII = [
+  { name: "xs 4 (чекбокс)", className: "rounded-xs" },
+  { name: "sm 8", className: "rounded-sm" },
+  { name: "md 12 (поля)", className: "rounded-md" },
+  { name: "lg 16 (карточки)", className: "rounded-lg" },
+  { name: "xl 24 (галерея)", className: "rounded-xl" },
+  { name: "full (кнопки)", className: "rounded-full" },
+];
+
 const TYPE_SCALE = [
-  { name: "3xl", className: "text-3xl font-semibold" },
+  { name: "5xl", className: "text-5xl font-semibold tracking-tight" },
+  { name: "4xl", className: "text-4xl font-semibold tracking-tight" },
+  { name: "3xl", className: "text-3xl font-semibold tracking-tight" },
   { name: "2xl", className: "text-2xl font-semibold" },
   { name: "xl", className: "text-xl font-semibold" },
   { name: "lg", className: "text-lg" },
@@ -104,7 +117,7 @@ export function Showcase() {
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
           {COLOR_SWATCHES.map((c) => (
             <div key={c.name} className="flex min-w-0 flex-col gap-1">
-              <div className={`h-12 rounded-md border border-line ${c.className}`} />
+              <div className={`h-12 rounded-md ${c.className}`} />
               <span className="truncate text-xs text-fg-muted">{c.name}</span>
             </div>
           ))}
@@ -118,17 +131,16 @@ export function Showcase() {
           ))}
         </div>
         <div className="flex flex-wrap gap-4">
-          <State label="radius-sm 4px">
-            <div className="size-12 rounded-sm border border-line-strong bg-surface-muted" />
-          </State>
-          <State label="radius-md 6px">
-            <div className="size-12 rounded-md border border-line-strong bg-surface-muted" />
-          </State>
-          <State label="radius-lg 8px">
-            <div className="size-12 rounded-lg border border-line-strong bg-surface-muted" />
+          {RADII.map((r) => (
+            <State key={r.name} label={r.name}>
+              <div className={`size-16 bg-surface-muted ${r.className}`} />
+            </State>
+          ))}
+          <State label="shadow-raised">
+            <div className="size-16 rounded-lg bg-surface shadow-raised" />
           </State>
           <State label="shadow-overlay">
-            <div className="size-12 rounded-lg border border-line bg-surface shadow-overlay" />
+            <div className="size-16 rounded-lg bg-surface shadow-overlay" />
           </State>
         </div>
       </Section>

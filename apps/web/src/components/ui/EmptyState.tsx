@@ -23,7 +23,7 @@ export function EmptyState({
   const Heading = (["h1", "h2", "h3"] as const)[headingLevel - 1] ?? "h3";
   return (
     <div className={cx("flex flex-col items-center gap-4 px-4 py-12 text-center", className)}>
-      <span className="flex size-12 items-center justify-center rounded-lg border border-line bg-surface-subtle">
+      <span className="flex size-14 items-center justify-center rounded-full bg-surface-muted">
         <Icon aria-hidden className="size-6 text-fg-muted" />
       </span>
       <div className="flex max-w-sm flex-col gap-1">

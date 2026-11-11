@@ -12,7 +12,7 @@ import { CarPhoto } from "./CarPhoto";
 import { PriceTag } from "./PriceTag";
 
 const BADGE: Record<CardBadge, { label: string; tone: BadgeTone; icon?: LucideIcon }> = {
-  in_transit: { label: "В пути", tone: "accent", icon: Truck },
+  in_transit: { label: "В пути", tone: "neutral", icon: Truck },
   not_cleared: { label: "Не растаможен", tone: "warning" },
   // Seller's statement, not a check: neutral (success is reserved for real checks).
   cleared: { label: "Растаможен", tone: "neutral" },
@@ -75,13 +75,13 @@ export function CarCard({
   return (
     <article
       className={cx(
-        "group relative flex min-w-0 flex-col overflow-hidden rounded-lg border border-line bg-surface transition-colors",
-        "has-ui-hover:border-line-strong",
-        "has-ui-focus:outline-2 has-ui-focus:outline-offset-2 has-ui-focus:outline-focus",
+        // No border, no shadow: the photo carries the card (docs/design/direction.md).
+        "group relative flex min-w-0 flex-col gap-3 rounded-lg",
+        "has-ui-focus:outline-2 has-ui-focus:outline-offset-4 has-ui-focus:outline-focus",
         className,
       )}
     >
-      <div className="relative">
+      <div className="relative overflow-hidden rounded-lg">
         <CarPhoto
           photo={listing.photos[0]}
           alt={`${title}, ${listing.year}`}
@@ -90,7 +90,7 @@ export function CarCard({
         />
         {favoriteSlot && <div className="absolute top-2 right-2 z-10">{favoriteSlot}</div>}
         {listing.photos.length > 1 && (
-          <span className="absolute right-2 bottom-2 inline-flex h-6 items-center gap-1 rounded-md bg-overlay px-2 text-xs font-medium text-fg-on-accent">
+          <span className="absolute right-2 bottom-2 inline-flex h-6 items-center gap-1 rounded-full bg-overlay px-2 text-xs font-medium text-fg-on-accent">
             <Camera aria-hidden className="size-3.5" />
             {listing.photos.length}
             <span className="sr-only"> фото</span>
@@ -98,13 +98,13 @@ export function CarCard({
         )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 p-4">
+      <div className="flex flex-1 flex-col gap-2">
         <div className="flex min-w-0 flex-col gap-0.5">
           <h3 className="text-base font-semibold text-fg">
             {/* Stretched link: the whole card is clickable, but only the title is announced. */}
             <Link
               href={href}
-              className="line-clamp-2 outline-none after:absolute after:inset-0 ui-hover:text-accent"
+              className="line-clamp-2 outline-none after:absolute after:inset-0 ui-hover:underline"
             >
               {title}, {listing.year}
             </Link>
@@ -152,7 +152,7 @@ export function CarCard({
         />
 
         {/* Wraps instead of truncating: the seller name matters more than the line staying single. */}
-        <p className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 border-t border-line pt-3 text-xs text-fg-subtle">
+        <p className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-subtle">
           <span className="flex max-w-full min-w-0 items-center gap-1.5">
             <SellerIcon aria-hidden className="size-3.5 shrink-0" />
             <span className="truncate">

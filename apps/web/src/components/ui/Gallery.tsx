@@ -33,7 +33,7 @@ export function Gallery({ photos, title, className }: GalleryProps) {
 
   if (count === 0) {
     return (
-      <div className={cx("overflow-hidden rounded-lg border border-line", className)}>
+      <div className={cx("overflow-hidden rounded-xl", className)}>
         <CarPhoto photo={null} alt={title} sizes="(min-width: 1024px) 640px, 100vw" />
       </div>
     );
@@ -49,7 +49,7 @@ export function Gallery({ photos, title, className }: GalleryProps) {
         if (e.key === "ArrowRight") go(1);
       }}
     >
-      <div className="relative overflow-hidden rounded-lg border border-line">
+      <div className="relative overflow-hidden rounded-xl">
         <CarPhoto
           photo={current}
           alt={`${title}, фото ${index + 1} из ${count}`}
@@ -84,7 +84,7 @@ export function Gallery({ photos, title, className }: GalleryProps) {
             </div>
             <span
               aria-live="polite"
-              className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-md bg-overlay px-2 py-0.5 text-xs font-medium text-fg-on-accent tabular-nums"
+              className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-overlay px-2.5 py-0.5 text-xs font-medium text-fg-on-accent tabular-nums"
             >
               {index + 1} / {count}
             </span>
@@ -103,7 +103,7 @@ export function Gallery({ photos, title, className }: GalleryProps) {
                   setIndex(i);
                 }}
                 className={cx(
-                  "relative block aspect-4/3 w-20 cursor-pointer overflow-hidden rounded-md border-2 bg-surface-muted",
+                  "relative block aspect-4/3 w-20 cursor-pointer overflow-hidden rounded-sm border-2 bg-surface-muted",
                   i === index ? "border-accent" : "border-transparent ui-hover:border-line-strong",
                   focusRing,
                 )}

@@ -19,7 +19,7 @@ export function SellerBlock({ seller, className }: SellerBlockProps) {
   const n = seller.activeListings;
   return (
     <section aria-label="Продавец" className={cx("flex gap-3", className)}>
-      <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-surface-muted">
+      <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-surface-muted">
         <Icon aria-hidden className="size-5 text-fg-muted" />
       </span>
       <div className="flex min-w-0 flex-col gap-0.5">

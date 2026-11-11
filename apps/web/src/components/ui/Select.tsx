@@ -73,7 +73,7 @@ export function Select({
       <FieldError className={errorText}>{errorMessage}</FieldError>
       <Popover
         offset={4}
-        className="w-(--trigger-width) overflow-auto rounded-lg border border-line bg-surface shadow-overlay outline-none"
+        className="w-(--trigger-width) overflow-auto rounded-lg bg-surface shadow-overlay outline-none"
       >
         <ListBox items={options} className="max-h-72 p-1 outline-none">
           {(item) => (
@@ -81,7 +81,7 @@ export function Select({
               id={item.id}
               textValue={item.label}
               className={cx(
-                "flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-3 text-base text-fg outline-none",
+                "flex min-h-11 cursor-pointer items-center gap-2 rounded-sm px-3 text-base text-fg outline-none",
                 "data-focused:bg-surface-muted data-selected:font-medium",
                 "data-disabled:cursor-not-allowed data-disabled:text-fg-disabled",
               )}
