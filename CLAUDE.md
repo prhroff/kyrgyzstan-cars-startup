@@ -32,7 +32,7 @@ TEST_DATABASE_URL=... pnpm --filter @repo/db test   # + DB-тесты
 
 ## Правила кода
 
-- Проект и кэши живут на диске E (`E:startup-project`, `E:dev.cache`), ничего не создавать на диске C.
+- Проект и кэши живут на диске E (`E:\startup-project`, `E:\dev\.cache`), ничего не создавать на диске C.
 - TypeScript strict, **без `any`**; неизвестные данные — `unknown` + zod.
 - Каждая утилита — с тестами (`*.test.ts` рядом с файлом).
 - **Цены — integer в целых единицах валюты** (доллары, сомы). Без float, центов, BigInt.
