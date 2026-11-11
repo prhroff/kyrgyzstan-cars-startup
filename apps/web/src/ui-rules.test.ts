@@ -1,0 +1,106 @@
+/**
+ * Enforces apps/web/CLAUDE.md design bans on every source file.
+ * Tailwind defaults are also reset in tokens.css, so banned classes would not render anyway —
+ * this test makes the violation loud instead of silently unstyled.
+ */
+import { readdirSync, readFileSync } from "node:fs";
+import { join, relative } from "node:path";
+import { describe, expect, it } from "vitest";
+
+const SRC = join(import.meta.dirname);
+
+/**
+ * Arbitrary values are banned for colors, font sizes, spacing, radii and shadows.
+ * Layout-only exceptions are listed here explicitly — add one only when there is no token way.
+ */
+const LAYOUT_ARBITRARY_ALLOWLIST = new Set<string>([
+  // Popover matches its trigger width (React Aria sets --trigger-width).
+  "w-(--trigger-width)",
+]);
+
+function sourceFiles(dir: string): string[] {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+    const p = join(dir, e.name);
+    if (e.isDirectory()) return sourceFiles(p);
+    if (!/\.(ts|tsx)$/.test(e.name) || /\.test\.tsx?$/.test(e.name)) return [];
+    return [p];
+  });
+}
+
+const files = sourceFiles(SRC).map((path) => ({
+  path: relative(SRC, path).replaceAll("\\", "/"),
+  text: readFileSync(path, "utf8"),
+}));
+
+/** Each rule: regex over file text → list of offending matches. */
+const rules: { name: string; find: (text: string) => string[] }[] = [
+  {
+    name: "arbitrary value outside the layout allowlist",
+    find: (t) =>
+      [...t.matchAll(/(?<![\w-])((?:[\w-]+:)*[a-z][\w-]*-(?:\[[^\]\s"'`]+\]|\(--[\w-]+\)))/g)]
+        .map((m) => (m[1] ?? "").replace(/^(?:[\w-]+:)+/, ""))
+        .filter((c) => !LAYOUT_ARBITRARY_ALLOWLIST.has(c)),
+  },
+  {
+    name: "arbitrary variant ([&...]: / has-[...]: / data-[...]:)",
+    find: (t) => [...t.matchAll(/[\w-]*\[[^\]\s]*\]:/g)].map((m) => m[0]),
+  },
+  {
+    name: "raw color literal (use tokens)",
+    find: (t) =>
+      [...t.matchAll(/#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?|oklch|oklab)\(/g)].map((m) => m[0]),
+  },
+  {
+    name: "gradient / blur / glass",
+    find: (t) =>
+      [
+        ...t.matchAll(
+          /\b(?:bg-(?:linear|radial|conic|gradient)[\w-]*|(?:backdrop-)?blur[\w-]*|glass\w*|from-[a-z]+-\d+|via-[a-z]+-\d+)\b/g,
+        ),
+      ].map((m) => m[0]),
+  },
+  {
+    name: "radius larger than 8px",
+    find: (t) => [...t.matchAll(/\brounded(?:-[trblse]{1,2})?-(?:xl|[2-9]xl)\b/g)].map((m) => m[0]),
+  },
+  {
+    name: "shadow other than shadow-overlay",
+    find: (t) =>
+      [...t.matchAll(/(?<![\w-])shadow-(?:xs|sm|md|lg|xl|2xl|inner)\b/g)].map((m) => m[0]),
+  },
+  {
+    name: "inline style attribute",
+    find: (t) => [...t.matchAll(/\bstyle=\{/g)].map((m) => m[0]),
+  },
+  {
+    name: "emoji in UI",
+    find: (t) => [...t.matchAll(/\p{Extended_Pictographic}/gu)].map((m) => m[0]),
+  },
+  {
+    name: "icon not from lucide-react",
+    find: (t) =>
+      [...t.matchAll(/from\s+["']([^"']*icon[^"']*)["']/gi)]
+        .map((m) => m[1] ?? "")
+        .filter((pkg) => pkg !== "lucide-react"),
+  },
+  {
+    name: "inline <svg> (icons come from Lucide)",
+    find: (t) => [...t.matchAll(/<svg\b/g)].map((m) => m[0]),
+  },
+];
+
+describe("UI rules", () => {
+  it("scans the source tree", () => {
+    expect(files.length).toBeGreaterThan(10);
+  });
+
+  it.each(rules.map((r) => [r.name, r] as const))("no %s", (_, rule) => {
+    const violations = files.flatMap((f) => rule.find(f.text).map((m) => `${f.path}: ${m}`));
+    expect(violations).toEqual([]);
+  });
+
+  it("allowlist entries are still used (remove dead ones)", () => {
+    const all = files.map((f) => f.text).join("\n");
+    for (const entry of LAYOUT_ARBITRARY_ALLOWLIST) expect(all).toContain(entry);
+  });
+});

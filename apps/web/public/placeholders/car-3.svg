@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+  <rect width="800" height="600" fill="#f6f5f2"/>
+  <g fill="none" stroke="#dcd8d1" stroke-width="10" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M180 360 L210 290 Q225 255 265 250 L330 245 Q360 205 410 200 L500 200 Q545 200 575 245 L610 252 Q640 258 645 290 L650 360 Z"/>
+    <path d="M345 248 L380 215 L490 215 Q525 215 548 248 Z"/>
+    <line x1="160" y1="390" x2="670" y2="390"/>
+  </g>
+  <g fill="#f6f5f2" stroke="#dcd8d1" stroke-width="10">
+    <circle cx="275" cy="362" r="38"/>
+    <circle cx="555" cy="362" r="38"/>
+  </g>
+  <text x="400" y="480" font-family="sans-serif" font-size="28" fill="#dcd8d1" text-anchor="middle">Фото 3</text>
+</svg>
