@@ -13,11 +13,12 @@ import {
 
 /**
  * Specs as the seller stated them (customs and availability included — they are statements,
- * not facts we checked, so they live here and not in TrustPanel). null → "нет данных", never "нет".
+ * not facts we checked, so they live here and not in TrustPanel). Unknown values are left out:
+ * "нет данных" is shown only for trust facts. null never turns into "нет".
  */
-export function specRows(l: ListingDetail): { label: string; value: string | null }[] {
+export function specRows(l: ListingDetail): { label: string; value: string }[] {
   const v = l.vehicle;
-  return [
+  const rows: { label: string; value: string | null }[] = [
     { label: "Год выпуска", value: String(l.year) },
     { label: "Пробег", value: formatMileageKm(l.mileageKm) },
     { label: "Двигатель", value: formatEngineVolume(v.engineVolumeCc) },
@@ -36,10 +37,11 @@ export function specRows(l: ListingDetail): { label: string; value: string | nul
     { label: "Город", value: l.city },
     {
       label: "Торг",
-      // Only what the seller said: unknown stays "нет данных".
+      // Only what the seller said; unknown is left out.
       value: l.negotiable === null ? null : l.negotiable ? "Возможен" : "Без торга",
     },
   ];
+  return rows.flatMap((r) => (r.value === null ? [] : [{ label: r.label, value: r.value }]));
 }
 
 export function ListingSpecs({
@@ -64,14 +66,7 @@ export function ListingSpecs({
             className="flex items-baseline justify-between gap-4 border-b border-line py-2"
           >
             <dt className="text-sm text-fg-muted">{row.label}</dt>
-            <dd
-              className={cx(
-                "text-right text-sm",
-                row.value === null ? "text-fg-subtle" : "font-medium text-fg",
-              )}
-            >
-              {row.value ?? "нет данных"}
-            </dd>
+            <dd className="text-right text-sm font-medium text-fg">{row.value}</dd>
           </div>
         ))}
       </dl>

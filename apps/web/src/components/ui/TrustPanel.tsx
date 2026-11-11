@@ -1,4 +1,4 @@
-import { CircleCheck, CircleDashed, CircleAlert, type LucideIcon } from "lucide-react";
+import { CircleAlert, CircleDashed, Info, type LucideIcon } from "lucide-react";
 import { useId } from "react";
 import { cx } from "@/lib/cx";
 import type { TrustItem, TrustStatus } from "@/lib/trust";
@@ -13,8 +13,9 @@ export interface TrustPanelProps {
 /** Status is shown by the icon and the fact itself — no "подтверждено" labels (tone of voice). */
 const STATUS: Record<TrustStatus, { icon: LucideIcon; className: string; srLabel: string | null }> =
   {
-    // Neutral: a fact is not a verdict (a green check would read as "проверено / хорошо").
-    fact: { icon: CircleCheck, className: "text-fg-muted", srLabel: null },
+    // Neutral: a fact is not a verdict. The green check is reserved for real checks
+    // (e.g. an inspection at a named service station) — see docs/tone-of-voice.md.
+    fact: { icon: Info, className: "text-fg-muted", srLabel: null },
     warning: { icon: CircleAlert, className: "text-warning", srLabel: "Обратите внимание: " },
     unknown: { icon: CircleDashed, className: "text-fg-subtle", srLabel: null },
   };

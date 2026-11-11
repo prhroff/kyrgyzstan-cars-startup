@@ -16,11 +16,12 @@ const value = (l: ListingDetail, label: string) =>
   specRows(l).find((r) => r.label === label)?.value;
 
 describe("specRows", () => {
-  it("unknown customs / negotiable stay null («нет данных»), never «нет»", () => {
+  it("unknown values are left out, never shown as «нет»", () => {
     const l = fixture("demo-novin");
     expect(l.customsCleared).toBeNull();
-    expect(value(l, "Растаможка")).toBeNull();
-    expect(value(l, "Торг")).toBeNull();
+    expect(value(l, "Растаможка")).toBeUndefined();
+    expect(value(l, "Торг")).toBeUndefined();
+    expect(value(l, "Привод")).toBeUndefined();
   });
 
   it("false is a stated «нет», shown as such", () => {

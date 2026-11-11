@@ -1,4 +1,4 @@
-import { toE164 } from "@repo/core";
+import { toE164, type BodyType } from "@repo/core";
 import {
   createRng,
   DEV_NOW,
@@ -40,6 +40,22 @@ const DESCRIPTIONS = [
   "Состояние нормальное для своего года. Есть вмятина на заднем бампере, на фото видно. Ходовая перебрана весной.",
   null,
 ];
+
+/** Body type per fixture model — the "segment" for similar listings. */
+const MODEL_BODY: Record<string, BodyType> = {
+  Camry: "sedan",
+  Sonata: "sedan",
+  K5: "sedan",
+  "E-Класс": "sedan",
+  Granta: "sedan",
+  "Song Plus": "crossover",
+  RX: "crossover",
+  Tucson: "crossover",
+  "GLE-Класс Купе": "crossover",
+  L7: "suv",
+  "001": "wagon",
+  Fit: "hatchback",
+};
 
 const DEALER_MEMBER_SINCE = new Date("2026-03-02T05:00:00Z");
 const IMPORTER_MEMBER_SINCE = new Date("2026-05-20T05:00:00Z");
@@ -127,6 +143,25 @@ function sellerProfile(
   };
 }
 
+/**
+ * The posting form requires mileage, fuel, transmission, city and at least one photo
+ * (docs/mvp.md), so listings on the site always have them — the showcase generator does not.
+ */
+function asPostable(card: CarCardData, index: number): CarCardData {
+  const age = Math.max(1, 2026 - card.year);
+  return {
+    ...card,
+    mileageKm: card.mileageKm ?? age * 14_000,
+    city: card.city ?? "Бишкек",
+    photos: card.photos.length > 0 ? card.photos : photos(card.id, 1, index),
+    vehicle: {
+      ...card.vehicle,
+      fuelType: card.vehicle.fuelType ?? "petrol",
+      transmission: card.vehicle.transmission ?? "automatic",
+    },
+  };
+}
+
 function toDetail(
   card: CarCardData,
   index: number,
@@ -136,13 +171,14 @@ function toDetail(
   const vinRoll = rng();
   return {
     ...card,
+    publishedAt: card.publishedAt ?? FIXTURE_NOW,
     status: "active",
     closedAt: null,
     description: DESCRIPTIONS[index % DESCRIPTIONS.length] ?? null,
     vehicle: {
       ...card.vehicle,
       vin: vinRoll < 0.3 ? null : (VALID_VINS[index % VALID_VINS.length] ?? null),
-      bodyType: null,
+      bodyType: MODEL_BODY[card.model] ?? null,
       drivetrain: null,
       color: null,
     },
@@ -345,17 +381,32 @@ function edge(id: string): CarCardData {
 const EDGE_LONG = edge("edge-long");
 const EDGE_EMPTY = edge("edge-empty");
 
+/** "Почти нет данных": only what the posting form requires — no VIN, no market estimate. */
 const NO_DATA: ListingDetail = {
   ...EDGE_EMPTY,
   id: "demo-nodata",
   status: "active",
   closedAt: null,
+  publishedAt: daysAgo(0.4),
+  mileageKm: 97_000,
+  city: "Токмок",
+  photos: photos("demo-nodata", 1, 3),
   description: null,
-  vehicle: { ...EDGE_EMPTY.vehicle, vin: null, bodyType: null, drivetrain: null, color: null },
+  vehicle: {
+    ...EDGE_EMPTY.vehicle,
+    fuelType: "petrol",
+    transmission: "automatic",
+    vin: null,
+    bodyType: null,
+    drivetrain: null,
+    color: null,
+  },
   seller: { ...EDGE_EMPTY.seller, memberSince: daysAgo(0.5), activeListings: 1 },
   contacts: { phone: phone(9004), telegramUsername: null, whatsapp: false },
   marketEstimate: null,
-  priceHistory: [],
+  priceHistory: [
+    { priceAmount: 16_000, currency: "USD", priceUsd: 16_000, observedAt: daysAgo(0.4) },
+  ],
 };
 
 const SOLD: ListingDetail = {
@@ -390,7 +441,7 @@ function buildDetails(): ListingDetail[] {
     NO_DATA,
     SOLD,
     REMOVED,
-    ...cards.map((c, i) => toDetail(c, i, rng, counts)),
+    ...cards.map((c, i) => toDetail(asPostable(c, i), i, rng, counts)),
   ];
 }
 

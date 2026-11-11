@@ -27,13 +27,13 @@ function diffText(diff: number): string {
  * until the market formula exists, a precise-looking marker would claim more than we know.
  */
 export function MarketRange({ position, diffPercent = null, className }: MarketRangeProps) {
+  // No estimate: no scale at all — an empty scale would still look like a measurement.
+  if (position === null) {
+    return <p className={cx("text-sm text-fg-muted", className)}>Цена к рынку: нет данных</p>;
+  }
   return (
     <div className={cx("flex flex-col gap-2", className)}>
-      <p className="sr-only">
-        {position === null
-          ? "Цена к рынку: нет данных"
-          : `Цена к рынку: ${MARKET_LABELS[position].toLowerCase()}`}
-      </p>
+      <p className="sr-only">{`Цена к рынку: ${MARKET_LABELS[position].toLowerCase()}`}</p>
       <div aria-hidden className="grid grid-cols-3 gap-1">
         {MARKET_POSITIONS.map((p) => {
           const active = p === position;
@@ -59,11 +59,7 @@ export function MarketRange({ position, diffPercent = null, className }: MarketR
         })}
       </div>
       <p className="text-sm text-fg-muted">
-        {position === null
-          ? "Цена к рынку: нет данных"
-          : diffPercent === null
-            ? MARKET_LABELS[position]
-            : diffText(diffPercent)}
+        {diffPercent === null ? MARKET_LABELS[position] : diffText(diffPercent)}
       </p>
     </div>
   );

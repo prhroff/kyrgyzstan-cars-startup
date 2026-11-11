@@ -41,8 +41,10 @@ export interface ContactInfo {
 /** Statuses a visitor can open. Drafts are 404; archived (auto-expired) shows like removed. */
 export type PublicListingStatus = Exclude<ListingStatus, "draft">;
 
-export interface ListingDetail extends Omit<CarCardData, "seller" | "vehicle"> {
+export interface ListingDetail extends Omit<CarCardData, "seller" | "vehicle" | "publishedAt"> {
   status: PublicListingStatus;
+  /** Every listing a visitor can open was published, so the date is always known. */
+  publishedAt: Date;
   closedAt: Listing["closedAt"];
   description: Listing["description"];
   vehicle: CarCardData["vehicle"] & Pick<Vehicle, "vin" | "bodyType" | "drivetrain" | "color">;

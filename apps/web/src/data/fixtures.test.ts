@@ -23,6 +23,17 @@ describe("listing fixtures", () => {
     expect(FIXTURE_LISTINGS.filter((l) => l.status === "active").length).toBeGreaterThan(24);
   });
 
+  it("every listing has what the posting form requires", () => {
+    for (const l of FIXTURE_LISTINGS) {
+      expect(l.mileageKm, l.id).not.toBeNull();
+      expect(l.vehicle.fuelType, l.id).not.toBeNull();
+      expect(l.vehicle.transmission, l.id).not.toBeNull();
+      expect(l.city, l.id).not.toBeNull();
+      expect(l.photos.length, l.id).toBeGreaterThan(0);
+      expect(l.priceHistory.length, l.id).toBeGreaterThan(0);
+    }
+  });
+
   it("phones are E.164 KG numbers", () => {
     for (const l of FIXTURE_LISTINGS) {
       expect(normalizePhone(l.contacts.phone)?.e164).toBe(l.contacts.phone);

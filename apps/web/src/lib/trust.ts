@@ -14,7 +14,10 @@ import {
  * «Доверие»). Seller statements (customs, availability) belong to the specs block, not here.
  */
 
-/** fact = we found it; warning = worth a look (neutral tone); unknown = honest "нет данных". */
+/**
+ * fact = what the site knows (neutral); warning = worth a look (neutral tone, not "danger");
+ * unknown = honest "нет данных". A "verified" status (green check) is reserved for real checks.
+ */
 export type TrustStatus = "fact" | "warning" | "unknown";
 
 export type TrustItemId = "market" | "vin" | "seller-listings" | "days-on-site" | "price-changes";
@@ -126,16 +129,6 @@ function sellerItem(l: ListingDetail): TrustItem {
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function daysItem(l: ListingDetail, now: Date): TrustItem {
-  if (l.publishedAt === null) {
-    return {
-      id: "days-on-site",
-      status: "unknown",
-      title: "Дата публикации: нет данных",
-      detail: null,
-      source: null,
-      date: null,
-    };
-  }
   const days = Math.max(0, Math.floor((now.getTime() - l.publishedAt.getTime()) / DAY_MS));
   return {
     id: "days-on-site",

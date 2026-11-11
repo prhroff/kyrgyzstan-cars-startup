@@ -31,6 +31,14 @@ describe("buildTrustItems", () => {
     ]);
   });
 
+  it("no observations at all: «нет данных», not «не менялась»", () => {
+    const l: ListingDetail = { ...fixture("demo-ok"), priceHistory: [] };
+    expect(item(l, "price-changes")).toMatchObject({
+      status: "unknown",
+      title: "История цены: нет данных",
+    });
+  });
+
   it("one observed price: did not change", () => {
     expect(item(fixture("demo-novin"), "price-changes")).toMatchObject({
       status: "fact",
@@ -72,11 +80,8 @@ describe("buildTrustItems", () => {
     const l = fixture("demo-nodata");
     expect(item(l, "market")).toMatchObject({ status: "unknown", source: null });
     expect(item(l, "market").title).toContain("нет данных");
-    expect(item(l, "days-on-site").status).toBe("unknown");
-    expect(item(l, "price-changes")).toMatchObject({
-      status: "unknown",
-      title: "История цены: нет данных",
-    });
+    expect(item(l, "vin").status).toBe("warning");
+    expect(item(l, "days-on-site").status).toBe("fact");
   });
 
   it("price above market is a fact, not a warning", () => {
