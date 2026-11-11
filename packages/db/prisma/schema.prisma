@@ -1,0 +1,441 @@
+// Prisma schema — the source of truth for the database.
+// Change it, then run `pnpm db:migrate` (never edit the DB by hand).
+// Enum values MUST stay identical to packages/core/src/enums.ts (checked by enums.test.ts).
+// Prices are Int in WHOLE currency units (dollars / soms).
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────────────────────── Enums ─────────────────────────────
+
+enum Currency {
+  USD
+  KGS
+}
+
+enum MileageUnit {
+  km
+  mi
+}
+
+enum FuelType {
+  petrol
+  diesel
+  lpg
+  petrol_lpg
+  hybrid
+  plug_in_hybrid
+  erev
+  electric
+}
+
+enum Transmission {
+  manual
+  automatic
+  robot
+  cvt
+}
+
+enum Drivetrain {
+  fwd
+  rwd
+  awd
+}
+
+enum SteeringSide {
+  left
+  right
+}
+
+enum BodyType {
+  sedan
+  hatchback
+  liftback
+  wagon
+  suv
+  crossover
+  coupe
+  convertible
+  minivan
+  pickup
+  van
+}
+
+enum OriginCountry {
+  korea
+  china
+  usa
+  japan
+  uae
+  europe
+  local
+  other
+}
+
+enum ListingStatus {
+  draft
+  active
+  sold
+  archived
+  removed
+}
+
+enum ListingCondition {
+  new
+  used
+  damaged
+  for_parts
+}
+
+enum Availability {
+  in_stock
+  in_transit
+  on_order
+}
+
+enum SourceType {
+  user
+  telegram
+  dealer_feed
+  site
+}
+
+enum SellerType {
+  private
+  dealer
+  importer
+}
+
+enum SellerOrigin {
+  registered
+  parsed
+}
+
+enum DuplicateReason {
+  vin
+  phone_params
+  photo_hash
+}
+
+enum RegionType {
+  oblast
+  city
+}
+
+// ─────────────────────────── Geography ───────────────────────────
+
+/// Oblast or city of republican significance (Bishkek, Osh).
+model Region {
+  id        Int        @id @default(autoincrement())
+  slug      String     @unique
+  nameRu    String
+  nameKy    String?
+  type      RegionType
+  sortOrder Int        @default(0)
+  cities    City[]
+}
+
+model City {
+  id               Int       @id @default(autoincrement())
+  regionId         Int
+  slug             String    @unique
+  nameRu           String
+  nameKy           String?
+  isRegionalCenter Boolean   @default(false)
+  sortOrder        Int       @default(0)
+  region           Region    @relation(fields: [regionId], references: [id])
+  listings         Listing[]
+
+  @@index([regionId])
+}
+
+// ─────────────────────────── Catalogue ───────────────────────────
+
+model Make {
+  id        Int       @id @default(autoincrement())
+  slug      String    @unique
+  name      String
+  /// Spellings seen in ads (Cyrillic, typos) — used by parsers for matching.
+  aliases   String[]  @default([])
+  sortOrder Int       @default(0)
+  models    Model[]
+  vehicles  Vehicle[]
+  listings  Listing[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Model {
+  id          Int          @id @default(autoincrement())
+  makeId      Int
+  slug        String
+  name        String
+  aliases     String[]     @default([])
+  make        Make         @relation(fields: [makeId], references: [id])
+  generations Generation[]
+  vehicles    Vehicle[]
+  listings    Listing[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([makeId, slug])
+}
+
+model Generation {
+  id        Int       @id @default(autoincrement())
+  modelId   Int
+  /// Chassis / generation code, e.g. "XV70", "W213".
+  code      String
+  name      String?
+  yearFrom  Int
+  /// Null = still in production.
+  yearTo    Int?
+  model     Model     @relation(fields: [modelId], references: [id])
+  vehicles  Vehicle[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([modelId, code])
+}
+
+// ──────────────────────────── Vehicle ────────────────────────────
+
+/// A physical car. Nullable specs: parsed ads are often incomplete.
+model Vehicle {
+  id                 String         @id @default(uuid(7)) @db.Uuid
+  /// Uppercase, 17 chars, validated with validateVin before insert.
+  vin                String?        @unique
+  makeId             Int
+  modelId            Int
+  generationId       Int?
+  year               Int
+  bodyType           BodyType?
+  fuelType           FuelType?
+  transmission       Transmission?
+  drivetrain         Drivetrain?
+  steering           SteeringSide?
+  /// Engine displacement in cm³ (2.5 L → 2500). Null for EVs.
+  engineVolumeCc     Int?
+  powerHp            Int?
+  batteryCapacityKwh Decimal?       @db.Decimal(5, 1)
+  color              String?
+  originCountry      OriginCountry?
+  make               Make           @relation(fields: [makeId], references: [id])
+  model              Model          @relation(fields: [modelId], references: [id])
+  generation         Generation?    @relation(fields: [generationId], references: [id])
+  listings           Listing[]
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  @@index([makeId, modelId, year])
+}
+
+// ──────────────────────────── Sellers ────────────────────────────
+
+model Seller {
+  id               String        @id @default(uuid(7)) @db.Uuid
+  type             SellerType
+  /// registered = signed up; parsed = created from an external ad, can be claimed later.
+  origin           SellerOrigin
+  name             String?
+  /// Telegram user id as string (exceeds 2^31).
+  telegramId       String?       @unique
+  telegramUsername String?
+  isVerified       Boolean       @default(false)
+  verifiedAt       DateTime?
+  /// When a real person took ownership of a parsed seller profile.
+  claimedAt        DateTime?
+  phones           SellerPhone[]
+  listings         Listing[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+model SellerPhone {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  sellerId  String   @db.Uuid
+  /// E.164 from normalizePhone, e.g. +996555123456.
+  phoneE164 String
+  isPrimary Boolean  @default(false)
+  seller    Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([sellerId, phoneE164])
+  // Not unique globally: parsed sellers may share a phone until merged.
+  @@index([phoneE164])
+}
+
+// ──────────────────────────── Sources ────────────────────────────
+
+/// A concrete origin of listings: a Telegram channel, a dealer feed, a site — or the system "user" source.
+model Source {
+  id              String          @id @default(uuid(7)) @db.Uuid
+  type            SourceType
+  /// Stable key, e.g. "user", "tg:avtokg", "dealer:toyota-bishkek".
+  slug            String          @unique
+  name            String
+  url             String?
+  /// Currency to assume when an ad has none (passed to parsePrice).
+  defaultCurrency Currency?
+  isActive        Boolean         @default(true)
+  listingSources  ListingSource[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+/// Where a listing came from. Every listing has exactly one (user listings use the system "user" source).
+model ListingSource {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  listingId    String   @unique @db.Uuid
+  sourceId     String   @db.Uuid
+  /// Post/ad id within the source. For user listings — the listing id.
+  externalId   String
+  externalUrl  String?
+  rawPayload   Json?
+  firstSeenAt  DateTime @default(now())
+  lastSyncedAt DateTime @default(now())
+  listing      Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  source       Source   @relation(fields: [sourceId], references: [id])
+
+  @@unique([sourceId, externalId])
+  @@index([sourceId, lastSyncedAt])
+}
+
+// ──────────────────────────── Listings ───────────────────────────
+
+/// One ad. Parsed duplicates of the same car stay separate Listings, linked via DuplicateCluster.
+///
+/// DENORMALIZED (write ONLY via packages/db/src/listings.ts): makeId, modelId, year (from Vehicle),
+/// mileageKm (from mileageValue+unit), priceUsd (from priceAmount+currency+ExchangeRate).
+model Listing {
+  id               String                  @id @default(uuid(7)) @db.Uuid
+  vehicleId        String                  @db.Uuid
+  sellerId         String?                 @db.Uuid
+  cityId           Int?
+  status           ListingStatus           @default(draft)
+  /// Whole units of `currency`.
+  priceAmount      Int
+  currency         Currency
+  /// Whole USD, for cross-currency sort/filter. Derived.
+  priceUsd         Int
+  negotiable       Boolean?
+  exchangePossible Boolean?
+  mileageValue     Int?
+  mileageUnit      MileageUnit?
+  /// Derived from mileageValue + mileageUnit.
+  mileageKm        Int?
+  /// Null = unknown (common for parsed ads); false ≠ unknown.
+  customsCleared   Boolean?
+  registeredInKg   Boolean?
+  condition        ListingCondition?
+  availability     Availability            @default(in_stock)
+  description      String?
+  // Denormalized from Vehicle for search indexes.
+  makeId           Int
+  modelId          Int
+  year             Int
+  publishedAt      DateTime?
+  /// When the listing left `active` (sold / archived / removed).
+  closedAt         DateTime?
+  vehicle          Vehicle                 @relation(fields: [vehicleId], references: [id])
+  seller           Seller?                 @relation(fields: [sellerId], references: [id], onDelete: SetNull)
+  city             City?                   @relation(fields: [cityId], references: [id])
+  make             Make                    @relation(fields: [makeId], references: [id])
+  model            Model                   @relation(fields: [modelId], references: [id])
+  source           ListingSource?
+  priceHistory     PriceHistory[]
+  photos           Photo[]
+  clusterMember    DuplicateClusterMember?
+  canonicalOf      DuplicateCluster?       @relation("CanonicalListing")
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+
+  @@index([status, makeId, modelId, year, priceUsd])
+  @@index([status, priceUsd])
+  @@index([status, publishedAt(sort: Desc)])
+  @@index([cityId, status])
+  @@index([vehicleId])
+  @@index([sellerId])
+}
+
+model PriceHistory {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  listingId   String   @db.Uuid
+  priceAmount Int
+  currency    Currency
+  priceUsd    Int
+  observedAt  DateTime @default(now())
+  listing     Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, observedAt])
+}
+
+model Photo {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  listingId String   @db.Uuid
+  url       String
+  position  Int
+  /// Exact-copy detection.
+  sha256    String?  @db.Char(64)
+  /// 64-bit perceptual hash as 16 hex chars (string, not BigInt, to stay JSON-safe).
+  phash     String?  @db.Char(16)
+  width     Int?
+  height    Int?
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([listingId, position])
+  @@index([phash])
+  @@index([sha256])
+}
+
+// ─────────────────────────── Duplicates ──────────────────────────
+
+/// Listings (from different sources) believed to describe the same physical car.
+model DuplicateCluster {
+  id                 String                   @id @default(uuid(7)) @db.Uuid
+  /// The listing shown to users for the whole cluster.
+  canonicalListingId String?                  @unique @db.Uuid
+  canonicalListing   Listing?                 @relation("CanonicalListing", fields: [canonicalListingId], references: [id], onDelete: SetNull)
+  members            DuplicateClusterMember[]
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+}
+
+model DuplicateClusterMember {
+  id         String           @id @default(uuid(7)) @db.Uuid
+  clusterId  String           @db.Uuid
+  /// A listing belongs to at most one cluster.
+  listingId  String           @unique @db.Uuid
+  reason     DuplicateReason
+  /// 0..1
+  confidence Float
+  matchedAt  DateTime         @default(now())
+  cluster    DuplicateCluster @relation(fields: [clusterId], references: [id], onDelete: Cascade)
+  listing    Listing          @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([clusterId])
+}
+
+// ─────────────────────────── Money ───────────────────────────────
+
+/// 1 `base` = `rate` `quote` on `date`, e.g. USD→KGS 87.45.
+model ExchangeRate {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  base      Currency
+  quote     Currency
+  rate      Decimal  @db.Decimal(14, 6)
+  date      DateTime @db.Date
+  source    String?
+  createdAt DateTime @default(now())
+
+  @@unique([base, quote, date])
+}
