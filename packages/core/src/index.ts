@@ -5,3 +5,4 @@ export * from "./phone/kg-operators.js";
 export * from "./phone/normalize-phone.js";
 export * from "./price.js";
 export * from "./vin.js";
+export * from "./year.js";

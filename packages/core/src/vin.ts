@@ -13,7 +13,8 @@ export type VinValidationResult =
   | { valid: true; vin: string; checksum: Exclude<VinChecksumStatus, "mismatch"> }
   | { valid: false; vin: string; error: "length" | "characters" | "checksum" };
 
-const VIN_PATTERN = /^[A-HJ-NPR-Z0-9]{17}$/;
+export const VIN_LENGTH = 17;
+const VIN_PATTERN = new RegExp(`^[A-HJ-NPR-Z0-9]{${VIN_LENGTH}}$`);
 const WEIGHTS = [8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2] as const;
 const TRANSLITERATION: Readonly<Record<string, number>> = {
   A: 1,
@@ -51,7 +52,7 @@ export function normalizeVin(input: string): string {
 /** Computes the expected check digit ("0"–"9" or "X") for a format-valid VIN. */
 export function computeVinCheckDigit(vin: string): string {
   let sum = 0;
-  for (let i = 0; i < 17; i++) {
+  for (let i = 0; i < VIN_LENGTH; i++) {
     const ch = vin.charAt(i);
     const value = /\d/.test(ch) ? Number(ch) : (TRANSLITERATION[ch] ?? 0);
     sum += value * (WEIGHTS[i] ?? 0);
@@ -62,7 +63,7 @@ export function computeVinCheckDigit(vin: string): string {
 
 export function validateVin(input: string): VinValidationResult {
   const vin = normalizeVin(input);
-  if (vin.length !== 17) return { valid: false, vin, error: "length" };
+  if (vin.length !== VIN_LENGTH) return { valid: false, vin, error: "length" };
   if (!VIN_PATTERN.test(vin)) return { valid: false, vin, error: "characters" };
 
   const matches = computeVinCheckDigit(vin) === vin.charAt(8);
