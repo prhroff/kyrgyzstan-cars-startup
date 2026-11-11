@@ -6,7 +6,7 @@ import { maxVehicleYear, MIN_VEHICLE_YEAR } from "@repo/core";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createPrismaClient } from "./client.js";
 import type { PrismaClient } from "./generated/prisma/client.js";
-import { updateVehicle } from "./listings.js";
+import { createListing, updateVehicle } from "./listings.js";
 
 const url = process.env.TEST_DATABASE_URL;
 
@@ -15,6 +15,7 @@ describe.skipIf(!url)("vehicle year bounds (DB)", () => {
   const tag = `test-${randomUUID().slice(0, 8)}`;
   let makeId: number;
   let modelId: number;
+  let sourceId: string;
 
   beforeAll(async () => {
     db = createPrismaClient(url ?? "");
@@ -24,12 +25,15 @@ describe.skipIf(!url)("vehicle year bounds (DB)", () => {
     });
     makeId = make.id;
     modelId = make.models[0]?.id ?? 0;
+    sourceId = (await db.source.create({ data: { type: "telegram", slug: tag, name: tag } })).id;
   });
 
   afterAll(async () => {
+    await db.listing.deleteMany({ where: { makeId } });
     await db.vehicle.deleteMany({ where: { makeId } });
     await db.model.deleteMany({ where: { makeId } });
     await db.make.delete({ where: { id: makeId } });
+    await db.source.delete({ where: { id: sourceId } });
     await db.$disconnect();
   });
 
@@ -50,5 +54,44 @@ describe.skipIf(!url)("vehicle year bounds (DB)", () => {
     await expect(updateVehicle(db, v.id, { year: maxVehicleYear() + 1 })).rejects.toThrow(
       /after next calendar year/,
     );
+  });
+
+  describe("Listing", () => {
+    const newListing = async () => {
+      const v = await create(2020);
+      const listing = await createListing(db, {
+        vehicleId: v.id,
+        priceAmount: 10_000,
+        currency: "USD",
+        source: { sourceId },
+      });
+      return { vehicleId: v.id, listingId: listing.id };
+    };
+
+    // Direct writes below bypass listings.ts on purpose: the only way to reach the Listing
+    // constraints, since updateVehicle hits the Vehicle trigger first.
+    it("trigger rejects a year after next calendar year", async () => {
+      const { listingId } = await newListing();
+      await expect(
+        db.listing.update({ where: { id: listingId }, data: { year: maxVehicleYear() + 1 } }),
+      ).rejects.toThrow(/after next calendar year/);
+    });
+
+    it("CHECK rejects a year below the lower bound", async () => {
+      const { listingId } = await newListing();
+      await expect(
+        db.listing.update({ where: { id: listingId }, data: { year: MIN_VEHICLE_YEAR - 1 } }),
+      ).rejects.toThrow(/Listing_year_min/);
+    });
+
+    it("a rejected updateVehicle leaves vehicle and listing unchanged", async () => {
+      const { vehicleId, listingId } = await newListing();
+      await expect(updateVehicle(db, vehicleId, { year: maxVehicleYear() + 1 })).rejects.toThrow(
+        /after next calendar year/,
+      );
+      const listing = await db.listing.findUniqueOrThrow({ where: { id: listingId } });
+      const vehicle = await db.vehicle.findUniqueOrThrow({ where: { id: vehicleId } });
+      expect([vehicle.year, listing.year]).toEqual([2020, 2020]);
+    });
   });
 });
