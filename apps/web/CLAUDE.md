@@ -40,5 +40,6 @@ pnpm --filter @repo/web screenshots -- --click=Фильтры   # мобильн
 
 - Типы — из `@repo/core` (enum'ы) и `@repo/db` (только `import type`, Prisma не попадает в бандл).
 - Цены — `src/lib/format.ts`: «15 500 $», «1 350 000 сом». Пересчитанное помечается «≈».
+- Тексты интерфейса — по `docs/tone-of-voice.md`.
 - `null` из парсинга = «неизвестно»: не показывать как «нет» (растаможка, торг, пробег).
 - Витрина компонентов: `/dev/ui` (только `NODE_ENV=development`), данные — `src/dev/fixtures.ts`.

@@ -39,6 +39,7 @@ model: opus
 8. Телефоны, rawPayload или строки подключения в логах.
 9. Новая логика без тестов.
 10. Правила CLAUDE.md: цены integer в целых единицах (нет float/`* 100`/BigInt); телефоны только через `normalizePhone`; `Boolean?` из парсинга → `false`; ручная правка `generated/**`, `dist/`, `pnpm-lock.yaml`; новая env-переменная без `.env.example` и zod-схемы; пути на диске C.
+11. Тексты интерфейса (строки в `apps/web`): проверять по `docs/tone-of-voice.md`.
 
 ## Формат ответа (до 15 строк)
 

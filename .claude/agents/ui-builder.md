@@ -44,6 +44,7 @@ model: sonnet
 - Нет градиентов, blur, крупных теней, скруглений > 8px, эмодзи, иконок не из Lucide.
 - Нет arbitrary values вне allowlist в `src/ui-rules.test.ts`; `pnpm test` в web зелёный.
 - Цены «15 500 $» / «1 350 000 сом», пересчёт помечен «≈»; `null` не показан как «нет».
+- Тексты проверять по `docs/tone-of-voice.md`.
 
 ## Формат ответа (до 15 строк)
 
