@@ -5,11 +5,14 @@ import { ListingGrid } from "@/components/listing/ListingGrid";
 import { ListingSpecs } from "@/components/listing/ListingSpecs";
 import { ListingSummary, listingTitle } from "@/components/listing/ListingSummary";
 import { RecordView } from "@/components/listing/RecordView";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { ContactActions } from "@/components/ui/ContactActions";
 import { Gallery } from "@/components/ui/Gallery";
 import { PriceHistory } from "@/components/ui/PriceHistory";
 import { TrustPanel } from "@/components/ui/TrustPanel";
 import { getListing, getNow, getSimilarListings, getUsdKgsRate } from "@/data/listings";
+import { modelId, slugify } from "@/data/search";
+import { listingCrumbs } from "@/lib/breadcrumbs";
 import { listingMetaDescription, listingMetaTitle } from "@/lib/seo";
 import { buildTrustItems } from "@/lib/trust";
 
@@ -40,6 +43,15 @@ export default async function ListingPage({ params }: Props) {
     getSimilarListings(listing, SIMILAR_COUNT),
   ]);
 
+  const crumbs = (
+    <Breadcrumbs
+      items={listingCrumbs({
+        make: { id: slugify(listing.make), label: listing.make },
+        model: { id: modelId(listing.make, listing.model), label: listing.model },
+      })}
+    />
+  );
+
   const similarSection = similar.length > 0 && (
     <section aria-labelledby="similar-heading" className="flex flex-col gap-4">
       <h2 id="similar-heading" className="text-2xl font-semibold tracking-tight text-fg">
@@ -52,6 +64,7 @@ export default async function ListingPage({ params }: Props) {
   if (listing.status !== "active") {
     return (
       <main className="mx-auto flex w-full max-w-content flex-col gap-10 px-4 py-6 lg:py-8">
+        <div className="-mb-6">{crumbs}</div>
         <ClosedListing listing={listing} now={now} />
         {similarSection}
       </main>
@@ -62,13 +75,14 @@ export default async function ListingPage({ params }: Props) {
     <main className="mx-auto flex w-full max-w-content flex-col gap-10 px-4 pt-4 pb-24 lg:py-8">
       {/* One DOM order for every width: mobile reads top to bottom, desktop pins the summary right. */}
       <div className="grid grid-cols-1 gap-y-8 lg:grid-cols-3 lg:gap-x-8">
+        <div className="-mb-4 lg:col-span-3 lg:-mb-2">{crumbs}</div>
         <Gallery photos={listing.photos} title={listingTitle(listing)} className="lg:col-span-2" />
         <ListingSummary
           listing={listing}
           usdKgsRate={rate}
           now={now}
           // Floating card on desktop (docs/design/direction.md: shadow only on floating elements).
-          className="lg:sticky lg:top-6 lg:col-start-3 lg:row-span-5 lg:row-start-1 lg:self-start lg:rounded-xl lg:bg-surface lg:p-6 lg:shadow-raised"
+          className="lg:sticky lg:top-6 lg:col-start-3 lg:row-span-5 lg:row-start-2 lg:self-start lg:rounded-xl lg:bg-surface lg:p-6 lg:shadow-raised"
         />
         <ListingSpecs listing={listing} className="lg:col-span-2" />
         <TrustPanel items={buildTrustItems(listing, now)} className="lg:col-span-2" />

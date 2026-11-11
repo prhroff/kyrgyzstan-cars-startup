@@ -66,7 +66,7 @@ export function RecentlyViewed({
                 <span className="line-clamp-2 text-sm font-medium text-fg group-data-hovered:underline">
                   {l.make} {l.model}, {l.year}
                 </span>
-                <span className="text-sm font-semibold whitespace-nowrap text-fg tabular-nums">
+                <span className="text-sm font-semibold tracking-tight whitespace-nowrap text-fg">
                   {formatPrice(l.priceAmount, l.currency)}
                 </span>
                 {l.city && <span className="truncate text-xs text-fg-subtle">{l.city}</span>}

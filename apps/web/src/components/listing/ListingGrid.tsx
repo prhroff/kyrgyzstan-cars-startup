@@ -12,8 +12,11 @@ export interface ListingGridProps {
   now: Date;
   /** How many first cards load their photo eagerly (above the fold). */
   priorityCount?: number;
-  /** "wide" = 4 columns on desktop (no sidebar), "narrow" = 3 (next to filters). */
-  columns?: "wide" | "narrow";
+  /**
+   * "wide" = 4 columns on desktop (no sidebar), "narrow" = 3 (next to filters),
+   * "list" = one card per row, photo on the left (catalog).
+   */
+  columns?: "wide" | "narrow" | "list";
   className?: string;
 }
 
@@ -28,8 +31,11 @@ export function ListingGrid({
   return (
     <ul
       className={cx(
-        "grid grid-cols-1 gap-4 sm:grid-cols-2",
-        columns === "wide" ? "lg:grid-cols-3 xl:grid-cols-4" : "xl:grid-cols-3",
+        columns === "list"
+          ? "flex flex-col gap-8 sm:gap-6"
+          : "grid grid-cols-1 gap-4 sm:grid-cols-2",
+        columns === "wide" && "lg:grid-cols-3 xl:grid-cols-4",
+        columns === "narrow" && "xl:grid-cols-3",
         className,
       )}
     >
@@ -42,6 +48,7 @@ export function ListingGrid({
             usdKgsRate={usdKgsRate}
             now={now}
             priority={i < priorityCount}
+            layout={columns === "list" ? "row" : "tile"}
           />
         </li>
       ))}

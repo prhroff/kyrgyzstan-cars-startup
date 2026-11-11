@@ -48,8 +48,7 @@ export default async function HomePage({ searchParams }: Props) {
       <div className="flex min-w-0 flex-1 flex-col gap-12 lg:gap-16">
         <div className="flex flex-col gap-6">
           <h1 className="text-3xl font-semibold tracking-tight text-fg lg:text-5xl">
-            {heading}{" "}
-            <span className="text-fg-subtle tabular-nums">{formatNumber(stats.total)}</span>
+            {heading} <span className="text-fg-subtle">{formatNumber(stats.total)}</span>
           </h1>
           <CollectionTiles city={city} />
         </div>

@@ -61,8 +61,9 @@ export function PriceTag({
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
         <span
           className={cx(
-            "font-semibold whitespace-nowrap text-fg tabular-nums",
-            size === "lg" ? "text-3xl tracking-tight" : "text-xl",
+            // Proportional digits + tight tracking: tabular figures spread "1 350 000" apart.
+            "font-semibold tracking-tight whitespace-nowrap text-fg",
+            size === "lg" ? "text-3xl" : "text-xl",
           )}
         >
           {formatPrice(amount, currency)}
@@ -73,7 +74,7 @@ export function PriceTag({
           </Badge>
         )}
       </div>
-      <span className="text-sm whitespace-nowrap text-fg-muted tabular-nums">
+      <span className="text-sm whitespace-nowrap text-fg-muted">
         <Approx />
         {formatPrice(converted, other)}
       </span>

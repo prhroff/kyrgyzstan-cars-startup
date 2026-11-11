@@ -3,6 +3,7 @@
 import { ArrowRight, Plus, RefreshCw, SearchX, Share2, Trash2, WifiOff } from "lucide-react";
 import { useState } from "react";
 import { Badge, type BadgeTone } from "@/components/ui/Badge";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { Button, type ButtonVariant } from "@/components/ui/Button";
 import { CarCard } from "@/components/ui/CarCard";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -13,6 +14,7 @@ import { Input } from "@/components/ui/Input";
 import { PriceTag } from "@/components/ui/PriceTag";
 import { Select } from "@/components/ui/Select";
 import { CarCardSkeleton, LoadingRegion, Skeleton } from "@/components/ui/Skeleton";
+import { catalogCrumbs, listingCrumbs } from "@/lib/breadcrumbs";
 import { EMPTY_FILTERS, type FilterValues } from "@/lib/filters";
 import { vinLengthMessage, yearRangeMessage } from "@/lib/messages";
 import {
@@ -373,6 +375,63 @@ export function Showcase() {
               <CarCard listing={l} href="#" usdKgsRate={DEV_USD_KGS_RATE} now={DEV_NOW} />
             </State>
           ))}
+        </div>
+      </Section>
+
+      <Section id="card-row" title="CarCard · строкой (каталог)">
+        <div className="flex flex-col gap-8 sm:gap-6">
+          <State label="длинные названия · дилер">
+            <CarCard
+              listing={EDGE_LONG}
+              href="#"
+              usdKgsRate={DEV_USD_KGS_RATE}
+              now={DEV_NOW}
+              layout="row"
+            />
+          </State>
+          <State label="пустые поля, нет фото">
+            <CarCard
+              listing={EDGE_EMPTY}
+              href="#"
+              usdKgsRate={DEV_USD_KGS_RATE}
+              now={DEV_NOW}
+              layout="row"
+            />
+          </State>
+          <State label="наведение" demo="hover">
+            <CarCard
+              listing={LISTINGS[0] ?? EDGE_TRANSIT}
+              href="#"
+              usdKgsRate={DEV_USD_KGS_RATE}
+              now={DEV_NOW}
+              layout="row"
+            />
+          </State>
+        </div>
+      </Section>
+
+      <Section id="breadcrumbs" title="Breadcrumbs">
+        <div className="flex flex-col gap-4">
+          <State label="каталог целиком">
+            <Breadcrumbs items={catalogCrumbs({})} />
+          </State>
+          <State label="марка и модель · город">
+            <Breadcrumbs
+              items={catalogCrumbs({
+                make: { id: "toyota", label: "Toyota" },
+                model: { id: "toyota:land-cruiser-prado", label: "Land Cruiser Prado" },
+                city: "Ош",
+              })}
+            />
+          </State>
+          <State label="объявление · наведение" demo="hover">
+            <Breadcrumbs
+              items={listingCrumbs({
+                make: { id: "mercedes-benz", label: "Mercedes-Benz" },
+                model: { id: "mercedes-benz:gle-coupe", label: "GLE Coupe" },
+              })}
+            />
+          </State>
         </div>
       </Section>
 

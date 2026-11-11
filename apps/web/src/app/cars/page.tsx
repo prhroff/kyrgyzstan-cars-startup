@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import { SearchX } from "lucide-react";
 import { CatalogControls } from "@/components/catalog/CatalogControls";
 import { ListingGrid } from "@/components/listing/ListingGrid";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LinkButton } from "@/components/ui/LinkButton";
 import { Pagination } from "@/components/ui/Pagination";
 import { getCities, getMakeOptions, getNow, getUsdKgsRate, searchListings } from "@/data/listings";
 import { catalogQueryString, parseCatalogQuery, type RawSearchParams } from "@/lib/search-params";
+import { catalogCrumbs } from "@/lib/breadcrumbs";
 import { formatNumber } from "@/lib/format";
 import { catalogMeta } from "@/lib/seo";
 
@@ -42,13 +44,19 @@ export default async function CatalogPage({ searchParams }: Props) {
   const meta = catalogMeta(query.filters, result.total, makes);
   // "Все марки" (home) links with ?pick=make: open the make picker. Not a filter, not kept in links.
   const pickMake = raw.pick === "make";
+  const make = makes.find((m) => m.id === query.filters.make) ?? null;
+  const model = make?.models.find((m) => m.id === query.filters.model) ?? null;
+  const crumbs = catalogCrumbs({ make, model, city: query.filters.city });
   const baseHref = `/cars${catalogQueryString({ filters: query.filters, sort: query.sort })}`;
 
   return (
     <main className="mx-auto flex w-full max-w-content flex-col gap-6 px-4 pt-6 pb-10 lg:gap-8 lg:pt-8">
-      <h1 className="text-3xl font-semibold tracking-tight text-fg lg:text-5xl">
-        {meta.h1} <span className="text-fg-subtle tabular-nums">{formatNumber(result.total)}</span>
-      </h1>
+      <div className="flex flex-col gap-2">
+        <Breadcrumbs items={crumbs} />
+        <h1 className="text-3xl font-semibold tracking-tight text-fg lg:text-5xl">
+          {meta.h1} <span className="text-fg-subtle">{formatNumber(result.total)}</span>
+        </h1>
+      </div>
       <CatalogControls
         query={query}
         total={result.total}
@@ -62,7 +70,7 @@ export default async function CatalogPage({ searchParams }: Props) {
               listings={result.items}
               usdKgsRate={rate}
               now={now}
-              columns="narrow"
+              columns="list"
               priorityCount={2}
             />
             <Pagination page={result.page} pageCount={result.pageCount} baseHref={baseHref} />

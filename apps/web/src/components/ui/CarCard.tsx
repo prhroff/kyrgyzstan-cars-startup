@@ -37,6 +37,11 @@ export interface CarCardProps {
    * Kept free of other overlays so adding it later does not reshape the card.
    */
   favoriteSlot?: React.ReactNode;
+  /**
+   * "tile" — photo on top (grids). "row" — catalog list: from `sm` the photo goes left, from `lg`
+   * the seller gets its own column on the right. On phones both look the same.
+   */
+  layout?: "tile" | "row";
   className?: string;
 }
 
@@ -63,29 +68,51 @@ export function CarCard({
   now,
   priority = false,
   favoriteSlot,
+  layout = "tile",
   className,
 }: CarCardProps) {
+  const row = layout === "row";
   const title = carTitle(listing);
   const specs = carSpecs(listing);
   const mileage = formatMileageKm(listing.mileageKm);
   const SellerIcon = SELLER_ICON[listing.seller.type];
   const daysOnSite = formatDaysOnSite(listing.publishedAt, now);
   const badges = cardBadges(listing);
+  const price = (
+    <PriceTag
+      className={cx(!row && "mt-auto")}
+      amount={listing.priceAmount}
+      currency={listing.currency}
+      priceUsd={listing.priceUsd}
+      usdKgsRate={usdKgsRate}
+      market={listing.market}
+    />
+  );
 
   return (
     <article
       className={cx(
         // No border, no shadow: the photo carries the card (docs/design/direction.md).
         "group relative flex min-w-0 flex-col gap-3 rounded-lg",
+        row && "sm:flex-row sm:gap-5",
         "has-ui-focus:outline-2 has-ui-focus:outline-offset-4 has-ui-focus:outline-focus",
         className,
       )}
     >
-      <div className="relative overflow-hidden rounded-lg">
+      <div
+        className={cx(
+          "relative overflow-hidden rounded-lg",
+          row && "sm:w-56 sm:shrink-0 sm:self-start lg:w-72",
+        )}
+      >
         <CarPhoto
           photo={listing.photos[0]}
           alt={`${title}, ${listing.year}`}
-          sizes="(min-width: 1280px) 300px, (min-width: 640px) 50vw, 100vw"
+          sizes={
+            row
+              ? "(min-width: 1024px) 288px, (min-width: 640px) 224px, 100vw"
+              : "(min-width: 1280px) 300px, (min-width: 640px) 50vw, 100vw"
+          }
           priority={priority}
         />
         {favoriteSlot && <div className="absolute top-2 right-2 z-10">{favoriteSlot}</div>}
@@ -98,61 +125,64 @@ export function CarCard({
         )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-2">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <h3 className="text-base font-semibold text-fg">
-            {/* Stretched link: the whole card is clickable, but only the title is announced. */}
-            <Link
-              href={href}
-              className="line-clamp-2 outline-none after:absolute after:inset-0 ui-hover:underline"
-            >
-              {title}, {listing.year}
-            </Link>
-          </h3>
-          {listing.trim && <p className="truncate text-sm text-fg-muted">{listing.trim}</p>}
+      <div className={cx("flex min-w-0 flex-1 flex-col gap-2", row && "lg:flex-row lg:gap-6")}>
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <h3 className={cx("font-semibold text-fg", row ? "text-base sm:text-lg" : "text-base")}>
+              {/* Stretched link: the whole card is clickable, but only the title is announced. */}
+              <Link
+                href={href}
+                className="line-clamp-2 outline-none after:absolute after:inset-0 ui-hover:underline"
+              >
+                {title}, {listing.year}
+              </Link>
+            </h3>
+            {listing.trim && <p className="truncate text-sm text-fg-muted">{listing.trim}</p>}
+          </div>
+
+          {/* In the list the price follows the title, as the eye scans rows by price. */}
+          {row && price}
+
+          <dl className="flex flex-col gap-1 text-sm text-fg-muted">
+            {(mileage ?? specs) && (
+              <div className="flex min-w-0 flex-wrap gap-x-2">
+                <dt className="sr-only">Пробег и характеристики</dt>
+                <dd className="min-w-0 truncate">{[mileage, specs].filter(Boolean).join(" · ")}</dd>
+              </div>
+            )}
+            {listing.city && (
+              <div className="flex items-center gap-1">
+                <dt>
+                  <MapPin aria-hidden className="size-4 shrink-0" />
+                  <span className="sr-only">Город</span>
+                </dt>
+                <dd className="truncate">{listing.city}</dd>
+              </div>
+            )}
+          </dl>
+
+          {badges.length > 0 && (
+            <ul aria-label="Метки" className="flex flex-wrap gap-1.5">
+              {badges.map((b) => (
+                <li key={b}>
+                  <Badge tone={BADGE[b].tone} {...(BADGE[b].icon ? { icon: BADGE[b].icon } : {})}>
+                    {BADGE[b].label}
+                  </Badge>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {!row && price}
         </div>
 
-        <dl className="flex flex-col gap-1 text-sm text-fg-muted">
-          {(mileage ?? specs) && (
-            <div className="flex min-w-0 flex-wrap gap-x-2">
-              <dt className="sr-only">Пробег и характеристики</dt>
-              <dd className="min-w-0 truncate">{[mileage, specs].filter(Boolean).join(" · ")}</dd>
-            </div>
-          )}
-          {listing.city && (
-            <div className="flex items-center gap-1">
-              <dt>
-                <MapPin aria-hidden className="size-4 shrink-0" />
-                <span className="sr-only">Город</span>
-              </dt>
-              <dd className="truncate">{listing.city}</dd>
-            </div>
-          )}
-        </dl>
-
-        {badges.length > 0 && (
-          <ul aria-label="Метки" className="flex flex-wrap gap-1.5">
-            {badges.map((b) => (
-              <li key={b}>
-                <Badge tone={BADGE[b].tone} {...(BADGE[b].icon ? { icon: BADGE[b].icon } : {})}>
-                  {BADGE[b].label}
-                </Badge>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <PriceTag
-          className="mt-auto"
-          amount={listing.priceAmount}
-          currency={listing.currency}
-          priceUsd={listing.priceUsd}
-          usdKgsRate={usdKgsRate}
-          market={listing.market}
-        />
-
         {/* Wraps instead of truncating: the seller name matters more than the line staying single. */}
-        <p className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-subtle">
+        <p
+          className={cx(
+            "flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-xs text-fg-subtle",
+            row && "lg:w-48 lg:shrink-0 lg:flex-col lg:items-start lg:text-sm",
+          )}
+        >
           <span className="flex max-w-full min-w-0 items-center gap-1.5">
             <SellerIcon aria-hidden className="size-3.5 shrink-0" />
             <span className="truncate">
@@ -160,7 +190,9 @@ export function CarCard({
               {sellerLabel(listing.seller)}
             </span>
           </span>
-          {daysOnSite && <span className="ml-auto shrink-0">{daysOnSite}</span>}
+          {daysOnSite && (
+            <span className={cx("ml-auto shrink-0", row && "lg:ml-0")}>{daysOnSite}</span>
+          )}
         </p>
       </div>
     </article>
